@@ -35,6 +35,10 @@
 #   By: Robert S. Rau & Rob F. Rau II
 # Changes: fixed file append for log file after scrot and matplorlib
 #
+# Updated: 4/8/2017
+#    Rev.: 1.07
+#      By: Robert S. Rau & Rob F. Rau II
+# Changes: Set local directory before many installs, started the shutdown monitor
 #
 #
 #Time setup
@@ -62,11 +66,11 @@ echo "PiFly Setup:Start Run in sudo" >> $logFilePath
 #
 # 1) Setup directory structure
 echo "PiFly setup: Starting directory setup"
-cd ~
+cd $HOME
 mkdir pifly
 echo "PiFly Setup:mkdir pifly:result" $? >> $logFilePath
 # switch to install directory
-cd ~/pifly
+cd $HOME/pifly
 #
 #
 #
@@ -91,11 +95,8 @@ sudo apt-get install git
 #
 # shutdown support
 # http://www.recantha.co.uk/blog/?p=13999
-#To run automatically at startup, move the executable to /usr/local/bin and
-#edit /etc/rc.local, inserting this one line before the final 'exit 0':
-#/usr/local/bin/gpio-halt &
-#An alternate pin number can optionally be specified before the '&'
 #
+cd $HOME/pifly
 git clone https://github.com/adafruit/Adafruit-GPIO-Halt
 echo "PiFly Setup:git clone of Adafruit_GPIO_Halt" $? >> $logFilePath
 cd Adafruit-GPIO-Halt
@@ -103,6 +104,8 @@ make
 echo "PiFly Setup:make of Adafruit_GPIO_Halt" $? >> $logFilePath
 sudo make install
 echo "PiFly Setup:make install of Adafruit_GPIO_Halt" $? >> $logFilePath
+sudo /usr/local/bin/gpio-halt 26 &
+echo "PiFly Setup:gpio-halt 26 &" $? >> $logFilePath
 #
 #
 # Enable SPI, I2c, I2S.
@@ -116,6 +119,7 @@ echo "PiFly Setup:mkdir pifly:cmdline.txt update" $? >> $logFilePath
 # 3) install RF transmitters and modulators
 #
 #  nbfm - narrow band FM - 144MHz transmitter, uses GPIO4
+cd $HOME/pifly
 wget https://raw.githubusercontent.com/fotografAle/NBFM/master/nbfm.c
 gcc -o3 -lm -std=gnu99 -o nbfm nbfm.c           # changed from -std=c99 to -std=gnu99
 echo "PiFly Setup:mkdir pifly:gcc nbfm" $? >> $logFilePath
@@ -123,7 +127,7 @@ echo "PiFly Setup:mkdir pifly:gcc nbfm" $? >> $logFilePath
 #
 #  rpitx - able to TX on 440MHz band, uses GPIO18
 echo "PiFly setup: Startingrpitx setup"
-cd ~/pifly
+cd $HOME/pifly
 git clone https://github.com/F5OEO/rpitx
 echo "PiFly Setup:mkdir pifly:git clone of rpitx result" $? >> $logFilePath
 cd ./rpitx
@@ -139,6 +143,7 @@ echo "PiFly setup: Startingpifmsetup"
 #
 #
 #  Packet radio modulator. Text to .WAV file
+cd $HOME/pifly
 wget https://raw.githubusercontent.com/km4efp/pifox/master/pifox/pkt2wave
 chmod +x pkt2wave
 echo "PiFly Setup:mkdir pifly:wget pkt2wave result" $? >> $logFilePath
