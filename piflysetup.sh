@@ -45,6 +45,11 @@
 #      By: Robert S. Rau & Rob F. Rau II
 # Changes: added pifm, copy cmdline to log, 
 #
+# Updated: 4/8/2017
+#    Rev.: 1.09
+#      By: Robert S. Rau & Rob F. Rau II
+# Changes: changed $HOME to /home/pi/ because while in sudo, $HOME is /root
+#
 #
 #Time setup
 # see http://raspberrypi.stackexchange.com/questions/47542/raspberry-pi-wont-update-time
@@ -75,11 +80,11 @@ echo "PiFly Setup:Start Run in sudo" >> $logFilePath
 #
 # 1) Setup directory structure
 echo "PiFly setup: Starting directory setup"
-cd $HOME
+cd /home/pi/
 mkdir pifly
 echo "PiFly Setup:mkdir pifly:result" $? >> $logFilePath
 # switch to install directory
-cd $HOME/pifly
+cd /home/pi/pifly
 #
 #
 #
@@ -113,7 +118,7 @@ sudo apt-get install git
 # shutdown support
 # http://www.recantha.co.uk/blog/?p=13999
 #
-cd $HOME/pifly
+cd /home/pi/pifly
 git clone https://github.com/adafruit/Adafruit-GPIO-Halt
 echo "PiFly Setup:git clone of Adafruit_GPIO_Halt" $? >> $logFilePath
 cd Adafruit-GPIO-Halt
@@ -148,7 +153,7 @@ cat /boot/cmdline.txt >> $logFilePath
 # 3) install RF transmitters and modulators
 #
 #  nbfm - narrow band FM - 144MHz transmitter, uses GPIO4
-cd $HOME/pifly
+cd /home/pi/pifly
 wget https://raw.githubusercontent.com/fotografAle/NBFM/master/nbfm.c
 gcc -o3 -lm -std=gnu99 -o nbfm nbfm.c           # changed from -std=c99 to -std=gnu99
 echo "PiFly Setup:nbfm:gcc nbfm" $? >> $logFilePath
@@ -156,7 +161,7 @@ echo "PiFly Setup:nbfm:gcc nbfm" $? >> $logFilePath
 #
 #  rpitx - able to TX on 440MHz band, uses GPIO18
 echo "PiFly setup: Startingrpitx setup"
-cd $HOME/pifly
+cd /home/pi/pifly
 git clone https://github.com/F5OEO/rpitx
 echo "PiFly Setup:git clone of rpitx result" $? >> $logFilePath
 cd ./rpitx
@@ -167,14 +172,14 @@ echo "PiFly Setup:rpitx install result" $? >> $logFilePath
 #  pifm - able to TX on 144MHz band, uses GPIO4
 # It's all Pythony, I don't know how to do this
 echo "PiFly setup: Startingpifmsetup"
-cd $HOME/pifly
+cd /home/pi/pifly
 wget https://raw.githubusercontent.com/rm-hull/pifm/master/pifm.c
 g++ -O3 -o pifm pifm.c
 echo "PiFly Setup:pifm:g++ pifm" $? >> $logFilePath
 #
 #
 #  Packet radio modulator. Text to .WAV file
-cd $HOME/pifly
+cd /home/pi/pifly
 wget https://raw.githubusercontent.com/km4efp/pifox/master/pifox/pkt2wave
 chmod +x pkt2wave
 echo "PiFly Setup:wget pkt2wave result" $? >> $logFilePath
