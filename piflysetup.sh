@@ -40,6 +40,11 @@
 #      By: Robert S. Rau & Rob F. Rau II
 # Changes: Set local directory before many installs, started the shutdown monitor
 #
+# Updated: 4/8/2017
+#    Rev.: 1.08
+#      By: Robert S. Rau & Rob F. Rau II
+# Changes: added pifm, copy cmdline to log, 
+#
 #
 #Time setup
 # see http://raspberrypi.stackexchange.com/questions/47542/raspberry-pi-wont-update-time
@@ -64,6 +69,10 @@ echo "PiFly Setup:Start Run in sudo" >> $logFilePath
 #
 #
 #
+#
+#
+#
+#
 # 1) Setup directory structure
 echo "PiFly setup: Starting directory setup"
 cd $HOME
@@ -78,6 +87,14 @@ sudo apt-get update
 echo "PiFly Setup:mkdir pifly:sudo apt-get update" $? >> $logFilePath
 #
 #
+#
+#
+#
+#
+#
+#
+#
+#
 # 2) Set up Raspberry Pi configuration
 # see:https://www.raspberrypi.org/forums/viewtopic.php?f=44&t=130619
 # for SPI see (see DMA note at bottom):https://www.raspberrypi.org/documentation/hardware/raspberrypi/spi/README.md
@@ -86,7 +103,7 @@ echo "PiFly setup: StartingRaspberry Pi configuration"
 sudo apt-get install git
 #
 # Make USB drive writeable
-#I don't know how to do this
+# https://www.raspberrypi.org/forums/viewtopic.php?f=91&t=65769
 #
 #
 # Make TV output secondary to HDMI output (I have read this is the default, but not so in practice)
@@ -114,7 +131,19 @@ echo "PiFly Setup:gpio-halt 26 &" $? >> $logFilePath
 #
 # Edit cmdline.txt st serial port is available for GPS
 sudo sed -i.bak -e 's/console=ttyAMA0\,115200 //' -e 's/kgdboc=ttyAMA0,115200 //' -e 's/console=serial0,115200 //' /boot/cmdline.txt
-echo "PiFly Setup:mkdir pifly:cmdline.txt update" $? >> $logFilePath
+echo "PiFly Setup:cmdline.txt update" $? >> $logFilePath
+echo "PiFly Setup:cmdline.txt is now:" >> $logFilePath
+cat /boot/cmdline.txt >> $logFilePath
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
 #
 # 3) install RF transmitters and modulators
 #
@@ -122,31 +151,33 @@ echo "PiFly Setup:mkdir pifly:cmdline.txt update" $? >> $logFilePath
 cd $HOME/pifly
 wget https://raw.githubusercontent.com/fotografAle/NBFM/master/nbfm.c
 gcc -o3 -lm -std=gnu99 -o nbfm nbfm.c           # changed from -std=c99 to -std=gnu99
-echo "PiFly Setup:mkdir pifly:gcc nbfm" $? >> $logFilePath
+echo "PiFly Setup:nbfm:gcc nbfm" $? >> $logFilePath
 #
 #
 #  rpitx - able to TX on 440MHz band, uses GPIO18
 echo "PiFly setup: Startingrpitx setup"
 cd $HOME/pifly
 git clone https://github.com/F5OEO/rpitx
-echo "PiFly Setup:mkdir pifly:git clone of rpitx result" $? >> $logFilePath
+echo "PiFly Setup:git clone of rpitx result" $? >> $logFilePath
 cd ./rpitx
 sudo ./install.sh
-echo "PiFly Setup:mkdir pifly:rpitx install result" $? >> $logFilePath
+echo "PiFly Setup:rpitx install result" $? >> $logFilePath
 #
 #
 #  pifm - able to TX on 144MHz band, uses GPIO4
 # It's all Pythony, I don't know how to do this
 echo "PiFly setup: Startingpifmsetup"
-#sudo python
-#>>> import PiFm
+cd $HOME/pifly
+wget https://raw.githubusercontent.com/rm-hull/pifm/master/pifm.c
+g++ -O3 -o pifm pifm.c
+echo "PiFly Setup:pifm:g++ pifm" $? >> $logFilePath
 #
 #
 #  Packet radio modulator. Text to .WAV file
 cd $HOME/pifly
 wget https://raw.githubusercontent.com/km4efp/pifox/master/pifox/pkt2wave
 chmod +x pkt2wave
-echo "PiFly Setup:mkdir pifly:wget pkt2wave result" $? >> $logFilePath
+echo "PiFly Setup:wget pkt2wave result" $? >> $logFilePath
 #
 #
 #
@@ -155,16 +186,30 @@ echo "PiFly Setup:mkdir pifly:wget pkt2wave result" $? >> $logFilePath
 #https://www.element14.com/community/community/raspberry-pi/raspberrypi_projects/blog/2014/01/27/pi-noir-and-catch-santa-challenge--the-dutch-way
 #
 #
+#
+#
+#
+#
+#
+#
+#
+#
 # 4) install audio support
 #
 # Text to speech    see:https://learn.adafruit.com/speech-synthesis-on-the-raspberry-pi/installing-the-festival-speech-package
 echo "PiFly setup: Startingfestivalsetup"
 sudo apt-get -y install festival
-echo "PiFly Setup:mkdir pifly:apt-get festival result" $? >> $logFilePath
+echo "PiFly Setup:apt-get festival result" $? >> $logFilePath
 #
 #
 # set up audio output
 #  https://learn.adafruit.com/adding-basic-audio-ouput-to-raspberry-pi-zero/pi-zero-pwm-audio
+#
+#
+#
+#
+#
+#
 #
 #
 # 5) Video download link support
@@ -172,12 +217,24 @@ echo "PiFly Setup:mkdir pifly:apt-get festival result" $? >> $logFilePath
 # Python matplotlib
 sudo apt-get -y install python-matplotlib
 #
-echo "PiFly Setup:mkdir pifly:apt-getpython-matplotlibresult" $? >> $logFilePath
+echo "PiFly Setup:apt-getpython-matplotlibresult" $? >> $logFilePath
+#
+#
+#
+#
+#
+#
 #
 #
 # 6) High current output support
 #
 # see  http://abyz.co.uk/rpi/pigpio/index.html
+#
+#
+#
+#
+#
+#
 #
 #
 #
