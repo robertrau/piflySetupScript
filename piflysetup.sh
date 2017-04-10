@@ -186,6 +186,7 @@ cat /boot/cmdline.txt >> $logFilePath
 #  nbfm - narrow band FM - 144MHz transmitter, uses GPIO4
 cd /home/pi/pifly
 wget https://raw.githubusercontent.com/fotografAle/NBFM/master/nbfm.c
+echo "PiFly Setup:nbfm:wget" $? >> $logFilePath
 chown pi:pi nbfm.c
 gcc -o3 -lm -std=gnu99 -o nbfm nbfm.c           # changed from -std=c99 to -std=gnu99
 echo "PiFly Setup:nbfm:gcc nbfm" $? >> $logFilePath
@@ -200,6 +201,7 @@ echo "PiFly Setup:git clone of rpitx result" $? >> $logFilePath
 cd ./rpitx
 sudo ./install.sh
 echo "PiFly Setup:rpitx install result" $? >> $logFilePath
+chown -R pi:pi rpitx
 #
 #
 #  pifm - able to TX on 144MHz band, uses GPIO4
@@ -208,15 +210,18 @@ echo "PiFly setup: Starting pifm setup"
 cd /home/pi/pifly
 wget https://raw.githubusercontent.com/rm-hull/pifm/master/pifm.c
 echo "PiFly Setup:wget pifm" $? >> $logFilePath
+chown pi:pi pifm.c
 g++ -O3 -o pifm pifm.c
 echo "PiFly Setup:pifm:g++ pifm" $? >> $logFilePath
+chown pi:pi pifm
 #
 #
 #  Packet radio modulator. Text to .WAV file
 cd /home/pi/pifly
 wget https://raw.githubusercontent.com/km4efp/pifox/master/pifox/pkt2wave
-chmod +x pkt2wave
 echo "PiFly Setup:wget pkt2wave result" $? >> $logFilePath
+chmod +x pkt2wave
+chown pi:pi pkt2wave
 #
 #
 #
