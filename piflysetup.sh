@@ -156,9 +156,10 @@ make
 echo "PiFly Setup:make of Adafruit_GPIO_Halt" $? >> $logFilePath
 sudo make install
 echo "PiFly Setup:make install of Adafruit_GPIO_Halt" $? >> $logFilePath
-chown -R pi:pi Adafruit-GPIO-Halt
 sudo /usr/local/bin/gpio-halt 26 &
 echo "PiFly Setup:gpio-halt 26 &" $? >> $logFilePath
+cd /home/pi/pifly
+chown -R pi:pi Adafruit-GPIO-Halt
 #
 #
 # Enable SPI, I2c, I2S.
@@ -201,6 +202,7 @@ echo "PiFly Setup:git clone of rpitx result" $? >> $logFilePath
 cd ./rpitx
 sudo ./install.sh
 echo "PiFly Setup:rpitx install result" $? >> $logFilePath
+cd /home/pi/pifly
 chown -R pi:pi rpitx
 #
 #
