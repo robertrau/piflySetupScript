@@ -45,10 +45,27 @@
 #      By: Robert S. Rau & Rob F. Rau II
 # Changes: added pifm, copy cmdline to log, 
 #
+#
 # Updated: 4/8/2017
 #    Rev.: 1.09
 #      By: Robert S. Rau & Rob F. Rau II
 # Changes: changed $HOME to /home/pi/ because while in sudo, $HOME is /root
+#
+# Updated: 4/9/2017
+#    Rev.: 1.10
+#      By: Robert S. Rau & Rob F. Rau II
+# Changes: added "Things to think about" comments, added usb info to log, added pifm install diagnostic, added USB drive writability (broken), added Remember to set country and time zone at end. added network connection check
+#
+#
+#
+#
+#
+# Things to think about
+# 1) Should we set up an email account "PiFlyUser" to make it easier for users to share or report problems?
+# 2) Should se set up a blog for sharing?
+# 3) Should this script ask for a call sign during setup, install differently if none provided?
+# 4) Should the shutdown button enable be delayed to the very end of the script?
+# 5) Should the end of the script remind the user to set time zone, country, and so on?
 #
 #
 #Time setup
@@ -64,10 +81,19 @@ if [[ $EUID > 0 ]]; then
 fi
 echo "" >> $logFilePath
 echo "PiFly Setup Script" >> $logFilePath
+echo "PiFly Setup:Start Run in sudo" >> $logFilePath
 date >> $logFilePath
+ping -c 1 8.8.8.8
+if [[ $? > 0 ]]; then
+    echo "No Network connection"
+    echo "PiFly Setup:No network connection" >> $logFilePath
+    exit
+fi
+echo "PiFly Setup:Have network connection" >> $logFilePath
 uname -a >> $logFilePath
 cat /proc/cpuinfo >> $logFilePath
-echo "PiFly Setup:Start Run in sudo" >> $logFilePath
+echo "PiFly Setup:USB info" >> $logFilePath
+lsusb -t  >> $logFilePath
 #
 #
 #
@@ -80,8 +106,9 @@ echo "PiFly Setup:Start Run in sudo" >> $logFilePath
 #
 # 1) Setup directory structure
 echo "PiFly setup: Starting directory setup"
-cd /home/pi/
+cd /home/pi
 mkdir pifly
+chown pi:pi pifly
 echo "PiFly Setup:mkdir pifly:result" $? >> $logFilePath
 # switch to install directory
 cd /home/pi/pifly
@@ -106,9 +133,12 @@ echo "PiFly Setup:mkdir pifly:sudo apt-get update" $? >> $logFilePath
 echo "PiFly setup: StartingRaspberry Pi configuration"
 #
 sudo apt-get install git
+echo "PiFly Setup:apt-get install git" $? >> $logFilePath
 #
 # Make USB drive writeable
 # https://www.raspberrypi.org/forums/viewtopic.php?f=91&t=65769
+#echo "/dev/sda1       /meda/pi        vfat        auto,user,rw,uid=pi,gid=pi     0     0" >> /etc/fstab
+echo "PiFly Setup:echo to /etc/fstab" $? >> $logFilePath
 #
 #
 # Make TV output secondary to HDMI output (I have read this is the default, but not so in practice)
@@ -126,6 +156,7 @@ make
 echo "PiFly Setup:make of Adafruit_GPIO_Halt" $? >> $logFilePath
 sudo make install
 echo "PiFly Setup:make install of Adafruit_GPIO_Halt" $? >> $logFilePath
+chown -R pi:pi Adafruit-GPIO-Halt
 sudo /usr/local/bin/gpio-halt 26 &
 echo "PiFly Setup:gpio-halt 26 &" $? >> $logFilePath
 #
@@ -155,8 +186,10 @@ cat /boot/cmdline.txt >> $logFilePath
 #  nbfm - narrow band FM - 144MHz transmitter, uses GPIO4
 cd /home/pi/pifly
 wget https://raw.githubusercontent.com/fotografAle/NBFM/master/nbfm.c
+chown pi:pi nbfm.c
 gcc -o3 -lm -std=gnu99 -o nbfm nbfm.c           # changed from -std=c99 to -std=gnu99
 echo "PiFly Setup:nbfm:gcc nbfm" $? >> $logFilePath
+chown pi:pi nbfm
 #
 #
 #  rpitx - able to TX on 440MHz band, uses GPIO18
@@ -171,9 +204,10 @@ echo "PiFly Setup:rpitx install result" $? >> $logFilePath
 #
 #  pifm - able to TX on 144MHz band, uses GPIO4
 # It's all Pythony, I don't know how to do this
-echo "PiFly setup: Startingpifmsetup"
+echo "PiFly setup: Starting pifm setup"
 cd /home/pi/pifly
 wget https://raw.githubusercontent.com/rm-hull/pifm/master/pifm.c
+echo "PiFly Setup:wget pifm" $? >> $logFilePath
 g++ -O3 -o pifm pifm.c
 echo "PiFly Setup:pifm:g++ pifm" $? >> $logFilePath
 #
@@ -250,4 +284,6 @@ sudo apt-get -y install scrot
 echo "PiFly Setup:mkdir pifly:apt-getapt-get scrotresult" $? >> $logFilePath
 #
 #
+echo ""
+echo "Remember to set country and time zone"
 # Should load some libpifly examples
