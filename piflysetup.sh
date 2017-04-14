@@ -210,7 +210,9 @@ chown -R pi:pi rpitx
 # It's all Pythony, I don't know how to do this
 echo "PiFly setup: Starting pifm setup"
 cd /home/pi/pifly
-wget https://raw.githubusercontent.com/rm-hull/pifm/master/pifm.c
+#wget https://raw.githubusercontent.com/rm-hull/pifm/master/pifm.c
+wget www.icrobotics.co.uk/wiki/images/c/c3/Pifm.tar.gz
+tar -xvf Pifm.tar.gz
 echo "PiFly Setup:wget pifm" $? >> $logFilePath
 chown pi:pi pifm.c
 g++ -O3 -o pifm pifm.c
