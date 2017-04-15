@@ -61,6 +61,11 @@
 #      By: Robert S. Rau & Rob F. Rau II
 # Changes: Fixed pifm compile, Added gcc & g++ errors to log file
 #
+# Updated: 4/15/2017
+#    Rev.: 1.11
+#      By: Robert S. Rau & Rob F. Rau II
+# Changes: Fixed pifm compile again. Added to 'things to think about'
+#
 #
 #
 # Things to think about
@@ -69,6 +74,7 @@
 # 3) Should this script ask for a call sign during setup, install differently if none provided?
 # 4) Should the shutdown button enable be delayed to the very end of the script?
 # 5) Should the end of the script remind the user to set time zone, country, and so on?
+# 6) Cleanup, remove source and unnecessary files?
 #
 #
 #Time setup
@@ -198,7 +204,7 @@ echo "PiFly Setup:nbfm:gcc nbfm" $? >> $logFilePath
 chown pi:pi nbfm
 #
 #
-#  rpitx - able to TX on 440MHz band, uses GPIO18
+#  rpitx - able to TX on 440MHz band, uses GPIO18 or GPIO4
 echo "PiFly setup: Startingrpitx setup"
 cd /home/pi/pifly
 git clone https://github.com/F5OEO/rpitx
@@ -220,12 +226,12 @@ tar -xvf Pifm.tar.gz
 echo "PiFly Setup:wget pifm" $? >> $logFilePath
 chown pi:pi pifm.c
 echo "PiFly Setup:Starting g++ -O3 -o pifm pifm.c &> $logFilePath" $? >> $logFilePath
-g++ -O3 -o pifm pifm.c &>> $logFilePath
+gcc -lm -std=gnu99 -g -xc pifm.c -o pifm &>> $logFilePath
 echo "PiFly Setup:pifm:g++ pifm" $? >> $logFilePath
 chown pi:pi pifm
 #
 #
-#  Packet radio modulator. Text to .WAV file
+#  Packet radio modulator. Text to modem .WAV file
 cd /home/pi/pifly
 wget https://raw.githubusercontent.com/km4efp/pifox/master/pifox/pkt2wave
 echo "PiFly Setup:wget pkt2wave result" $? >> $logFilePath
@@ -249,7 +255,7 @@ chown pi:pi pkt2wave
 #
 # 4) install audio support
 #
-# Text to speech    see:https://learn.adafruit.com/speech-synthesis-on-the-raspberry-pi/installing-the-festival-speech-package
+# Text to speech and text to wave support    see:https://learn.adafruit.com/speech-synthesis-on-the-raspberry-pi/installing-the-festival-speech-package
 echo "PiFly setup: Startingfestivalsetup"
 sudo apt-get -y install festival
 echo "PiFly Setup:apt-get festival result" $? >> $logFilePath
@@ -265,7 +271,7 @@ echo "PiFly Setup:apt-get festival result" $? >> $logFilePath
 #
 #
 #
-# 5) Video download link support
+# 5) Video downlink support
 #
 # Python matplotlib
 sudo apt-get -y install python-matplotlib
