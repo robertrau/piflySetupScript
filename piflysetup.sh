@@ -56,7 +56,10 @@
 #      By: Robert S. Rau & Rob F. Rau II
 # Changes: added "Things to think about" comments, added usb info to log, added pifm install diagnostic, added USB drive writability (broken), added Remember to set country and time zone at end. added network connection check
 #
-#
+# Updated: 4/14/2017
+#    Rev.: 1.11
+#      By: Robert S. Rau & Rob F. Rau II
+# Changes: Fixed pifm compile, Added gcc & g++ errors to log file
 #
 #
 #
@@ -189,7 +192,8 @@ cd /home/pi/pifly
 wget https://raw.githubusercontent.com/fotografAle/NBFM/master/nbfm.c
 echo "PiFly Setup:nbfm:wget" $? >> $logFilePath
 chown pi:pi nbfm.c
-gcc -o3 -lm -std=gnu99 -o nbfm nbfm.c           # changed from -std=c99 to -std=gnu99
+echo "PiFly Setup:Starting gcc -o3 -lm -std=gnu99 -o nbfm nbfm.c &> $logFilePath" $? >> $logFilePath
+gcc -o3 -lm -std=gnu99 -o nbfm nbfm.c &>> $logFilePath                 # changed from -std=c99 to -std=gnu99
 echo "PiFly Setup:nbfm:gcc nbfm" $? >> $logFilePath
 chown pi:pi nbfm
 #
@@ -215,7 +219,8 @@ wget www.icrobotics.co.uk/wiki/images/c/c3/Pifm.tar.gz
 tar -xvf Pifm.tar.gz
 echo "PiFly Setup:wget pifm" $? >> $logFilePath
 chown pi:pi pifm.c
-g++ -O3 -o pifm pifm.c
+echo "PiFly Setup:Starting g++ -O3 -o pifm pifm.c &> $logFilePath" $? >> $logFilePath
+g++ -O3 -o pifm pifm.c &>> $logFilePath
 echo "PiFly Setup:pifm:g++ pifm" $? >> $logFilePath
 chown pi:pi pifm
 #
