@@ -77,6 +77,10 @@
 #      By: Robert S. Rau & Rob F. Rau II
 # Changes: Added rule for making USB drives writable
 #
+# Updated: 4/16/2017
+#    Rev.: 1.14
+#      By: Robert S. Rau & Rob F. Rau II
+# Changes: Cleanup to USB rule, added 11-media-by-label-auto-mount.rules to git
 #
 # Things to think about
 # 1) Should we set up an email account "PiFlyUser" to make it easier for users to share or report problems?
@@ -159,7 +163,10 @@ echo "PiFly Setup:apt-get install git" $? >> $logFilePath
 #
 #
 #
+# Make USB drive writeable
 # Add rule for mounting USB flash drives as writable
+# https://www.axllent.org/docs/view/auto-mounting-usb-storage/
+echo "PiFly Setup:Setting up USB drives to be writable"
 echo "PiFly Setup:Setting up USB drives to be writable" $? >> $logFilePath
 cp $mydirectory/11-media-by-label-auto-mount.rules /etc/udev/rules.d/
 echo "PiFly Setup:USB drive setup:copy" $? >> $logFilePath
@@ -169,9 +176,6 @@ echo "PiFly Setup:USB drive setup:udevadm" $? >> $logFilePath
 #
 #
 #
-# Make USB drive writeable
-# https://www.axllent.org/docs/view/auto-mounting-usb-storage/
-echo "PiFly Setup:Setting up USB drives to be writable" $? >> $logFilePath
 #
 #
 #
