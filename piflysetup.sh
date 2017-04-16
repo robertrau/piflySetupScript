@@ -1,5 +1,6 @@
 #!/bin/bash
 # This script takes a fresh Raspberry Pi Zero NOOBS 2.3.0 install (No other installations!) and sets up the PiFly development environment
+#See www.rau-deaver.org/Project_PiFly.html
 #
 #Written: 3/26/2017
 #  Rev.: 1.00
@@ -66,6 +67,15 @@
 #      By: Robert S. Rau & Rob F. Rau II
 # Changes: Fixed pifm compile again. Added to 'things to think about'
 #
+# Updated: 4/15/2017
+#    Rev.: 1.12
+#      By: Robert S. Rau & Rob F. Rau II
+# Changes: Fixed echo mesage for pifm gcc message. Added comments about setting I2C speed to 400kHz and SPI speed. 
+#
+# Updated: 4/16/2017
+#    Rev.: 1.13
+#      By: Robert S. Rau & Rob F. Rau II
+# Changes: Added rule for making USB drives writable
 #
 #
 # Things to think about
@@ -82,6 +92,7 @@
 #sudo date -s "$(wget -qSO- --max-redirect=0 google.com 2>&1 | grep Date: | cut -d' ' -f5-8)Z"
 #
 logFilePath=/var/log/piflyinstalllog.txt
+mydirectory=$(pwd)
 #
 # 0) Check that we are running with root permissions
 if [[ $EUID > 0 ]]; then
@@ -101,7 +112,7 @@ fi
 echo "PiFly Setup:Have network connection" >> $logFilePath
 uname -a >> $logFilePath
 cat /proc/cpuinfo >> $logFilePath
-echo "PiFly Setup:USB info" >> $logFilePath
+echo "PiFly Setup:USB info:" >> $logFilePath
 lsusb -t  >> $logFilePath
 #
 #
@@ -144,10 +155,28 @@ echo "PiFly setup: StartingRaspberry Pi configuration"
 sudo apt-get install git
 echo "PiFly Setup:apt-get install git" $? >> $logFilePath
 #
+#
+#
+#
+#
+# Add rule for mounting USB flash drives as writable
+echo "PiFly Setup:Setting up USB drives to be writable" $? >> $logFilePath
+cp $mydirectory/11-media-by-label-auto-mount.rules /etc/udev/rules.d/
+echo "PiFly Setup:USB drive setup:copy" $? >> $logFilePath
+udevadm control --reload-rules
+echo "PiFly Setup:USB drive setup:udevadm" $? >> $logFilePath
+#
+#
+#
+#
 # Make USB drive writeable
-# https://www.raspberrypi.org/forums/viewtopic.php?f=91&t=65769
-#echo "/dev/sda1       /meda/pi        vfat        auto,user,rw,uid=pi,gid=pi     0     0" >> /etc/fstab
-echo "PiFly Setup:echo to /etc/fstab" $? >> $logFilePath
+# https://www.axllent.org/docs/view/auto-mounting-usb-storage/
+echo "PiFly Setup:Setting up USB drives to be writable" $? >> $logFilePath
+#
+#
+#
+#
+#
 #
 #
 # Make TV output secondary to HDMI output (I have read this is the default, but not so in practice)
@@ -185,9 +214,23 @@ cat /boot/cmdline.txt >> $logFilePath
 #
 #
 #
+# Set I2C speed to 400kHz
+# /etc/modules: kernel modules to load at boot time.
+#
+# This file contains the names of kernel modules that should be loaded
+# at boot time, one per line. Lines beginning with "#" are ignored.
+# Parameters can be specified after the module name.
+#snd-bcm2835
+#i2c-bcm2708 baudrate=400000
+#i2c-dev
 #
 #
 #
+#
+#
+#
+# SPI speed
+# https://raspberrypi.stackexchange.com/questions/699/what-spi-frequencies-does-raspberry-pi-support
 #
 #
 #
@@ -225,7 +268,7 @@ wget www.icrobotics.co.uk/wiki/images/c/c3/Pifm.tar.gz
 tar -xvf Pifm.tar.gz
 echo "PiFly Setup:wget pifm" $? >> $logFilePath
 chown pi:pi pifm.c
-echo "PiFly Setup:Starting g++ -O3 -o pifm pifm.c &> $logFilePath" $? >> $logFilePath
+echo "PiFly Setup:Starting gcc -lm -std=gnu99 -g -xc pifm.c -o pifm &> $logFilePath" $? >> $logFilePath
 gcc -lm -std=gnu99 -g -xc pifm.c -o pifm &>> $logFilePath
 echo "PiFly Setup:pifm:g++ pifm" $? >> $logFilePath
 chown pi:pi pifm
@@ -306,4 +349,5 @@ echo "PiFly Setup:mkdir pifly:apt-getapt-get scrotresult" $? >> $logFilePath
 #
 echo ""
 echo "Remember to set country and time zone"
+echo "If plugged in a"
 # Should load some libpifly examples
