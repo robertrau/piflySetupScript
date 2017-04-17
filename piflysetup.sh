@@ -82,6 +82,11 @@
 #      By: Robert S. Rau & Rob F. Rau II
 # Changes: Cleanup to USB rule, added 11-media-by-label-auto-mount.rules to git
 #
+# Updated: 4/16/2017
+#    Rev.: 1.15
+#      By: Robert S. Rau & Rob F. Rau II
+# Changes: Fixed git clone errors on a second run of this script
+#
 # Things to think about
 # 1) Should we set up an email account "PiFlyUser" to make it easier for users to share or report problems?
 # 2) Should se set up a blog for sharing?
@@ -191,9 +196,15 @@ echo "PiFly Setup:USB drive setup:udevadm" $? >> $logFilePath
 # http://www.recantha.co.uk/blog/?p=13999
 #
 cd /home/pi/pifly
-git clone https://github.com/adafruit/Adafruit-GPIO-Halt
-echo "PiFly Setup:git clone of Adafruit_GPIO_Halt" $? >> $logFilePath
-cd Adafruit-GPIO-Halt
+if [[-d Adafruit-GPIO-Halt ]]
+then
+  cd Adafruit-GPIO-Halt
+  git pull
+echo "PiFly Setup:git pull of Adafruit_GPIO_Halt" $? >> $logFilePathelse
+  git clone https://github.com/adafruit/Adafruit-GPIO-Halt
+  echo "PiFly Setup:git clone of Adafruit_GPIO_Halt" $? >> $logFilePath
+  cd Adafruit-GPIO-Halt
+fi
 make
 echo "PiFly Setup:make of Adafruit_GPIO_Halt" $? >> $logFilePath
 sudo make install
@@ -254,9 +265,16 @@ chown pi:pi nbfm
 #  rpitx - able to TX on 440MHz band, uses GPIO18 or GPIO4
 echo "PiFly setup: Startingrpitx setup"
 cd /home/pi/pifly
-git clone https://github.com/F5OEO/rpitx
-echo "PiFly Setup:git clone of rpitx result" $? >> $logFilePath
-cd ./rpitx
+if [[-d rpitx ]]
+then
+  cd rpitx
+  git pull
+  echo "PiFly Setup:git pull of rpitx result" $? >> $logFilePath
+else
+  git clone https://github.com/F5OEO/rpitx
+  echo "PiFly Setup:git clone of rpitx result" $? >> $logFilePath
+  cd ./rpitx
+fi
 sudo ./install.sh
 echo "PiFly Setup:rpitx install result" $? >> $logFilePath
 cd /home/pi/pifly
