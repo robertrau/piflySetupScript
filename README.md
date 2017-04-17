@@ -6,6 +6,16 @@ All trademarks are copyright of their respective owners. 
 Overview
 The PiFly board is designed for drones, high power rocketry, and RC airplanes. The board will also suit many other applications. Primarily designed for the Raspberry Pi Zero, it will work on any Raspberry Pi with a 40 pin connector or compatible. The physical form factor doesn’t conform to the Raspberry Pi HAT size, hence the HAT-ish reference.
 
+Usage
+cd ~
+git clone htpps://github.com/robertrau/piflysetupscript
+cd piflysetupscript
+sudo ./piflysetup.sh
+
+
+To check log file
+cat /var/log/piflyinstalllog.txt
+
 
 
 ![Markdown preferences pane](http://192.168.1.42/Project_PiFly_files/droppedImage_3.jpg)

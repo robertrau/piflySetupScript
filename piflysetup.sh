@@ -89,7 +89,7 @@
 #
 # Things to think about
 # 1) Should we set up an email account "PiFlyUser" to make it easier for users to share or report problems?
-# 2) Should se set up a blog for sharing?
+# 2) Should we set up a blog for sharing?
 # 3) Should this script ask for a call sign during setup, install differently if none provided?
 # 4) Should the shutdown button enable be delayed to the very end of the script?
 # 5) Should the end of the script remind the user to set time zone, country, and so on?
@@ -200,7 +200,8 @@ if [[-d Adafruit-GPIO-Halt ]]
 then
   cd Adafruit-GPIO-Halt
   git pull
-echo "PiFly Setup:git pull of Adafruit_GPIO_Halt" $? >> $logFilePathelse
+  echo "PiFly Setup:git pull of Adafruit_GPIO_Halt" $? >> $logFilePathelse
+else
   git clone https://github.com/adafruit/Adafruit-GPIO-Halt
   echo "PiFly Setup:git clone of Adafruit_GPIO_Halt" $? >> $logFilePath
   cd Adafruit-GPIO-Halt
