@@ -49,7 +49,7 @@ cat /var/log/piflyinstalllog.txt
 
 **• GPS:** The board uses the Skytrac Venus838 module. In binary mode this device can make 50 location updates per second. It has an SMA connector for an external antenna. This is required for the use of a helical, omni directional antenna. GPS data can be backed up with a super capacitor that has a connector for an external rechargeable coin cell. Currently there is only Raspberry Pi support for ASCII NMEA-0183 compatible output at 10 location updates per second. There is also a four pin connector for an external GPS if the board is built without the onboard GPS.
 
-**• I/Os: ** Most have ESD protection.
+**• I/Os:** Most have ESD protection.
 
 **• A/D support:** Options for 8, 10, and 12 bit footprint compatible A/D converters. The default build uses the 10 bit TI ADS7957SDBTR A/D converter with 16 channels; some for internal measurement and diagnostics and some external channels. The external A/D connector is a 0.050” pitch connector. Two external channels can be set up for thermistors. Uses SPI interface.
 

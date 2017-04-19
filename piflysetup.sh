@@ -87,6 +87,16 @@
 #      By: Robert S. Rau & Rob F. Rau II
 # Changes: Fixed git clone errors on a second run of this script
 #
+# Updated: 4/17/2017
+#    Rev.: 1.16
+#      By: Robert S. Rau & Rob F. Rau II
+# Changes: Added I2C-tools install. Added to things to think about
+#
+# Updated: 4/19/2017
+#    Rev.: 1.17
+#      By: Robert S. Rau & Rob F. Rau II
+# Changes: updated pifm install
+#
 # Things to think about
 # 1) Should we set up an email account "PiFlyUser" to make it easier for users to share or report problems?
 # 2) Should we set up a blog for sharing?
@@ -94,6 +104,7 @@
 # 4) Should the shutdown button enable be delayed to the very end of the script?
 # 5) Should the end of the script remind the user to set time zone, country, and so on?
 # 6) Cleanup, remove source and unnecessary files?
+# 7) Need to abort on failure
 #
 #
 #Time setup
@@ -101,7 +112,7 @@
 #sudo date -s "$(wget -qSO- --max-redirect=0 google.com 2>&1 | grep Date: | cut -d' ' -f5-8)Z"
 #
 logFilePath=/var/log/piflyinstalllog.txt
-mydirectory=$(pwd)
+mydirectory=$(pwd)     #  remember what directory I started in
 #
 # 0) Check that we are running with root permissions
 if [[ $EUID > 0 ]]; then
@@ -264,7 +275,7 @@ chown pi:pi nbfm
 #
 #
 #  rpitx - able to TX on 440MHz band, uses GPIO18 or GPIO4
-echo "PiFly setup: Startingrpitx setup"
+echo "PiFly setup: Starting rpitx setup"
 cd /home/pi/pifly
 if [[-d rpitx ]]
 then
@@ -282,19 +293,27 @@ cd /home/pi/pifly
 chown -R pi:pi rpitx
 #
 #
+#
+#
 #  pifm - able to TX on 144MHz band, uses GPIO4
-# It's all Pythony, I don't know how to do this
 echo "PiFly setup: Starting pifm setup"
 cd /home/pi/pifly
-#wget https://raw.githubusercontent.com/rm-hull/pifm/master/pifm.c
-wget www.icrobotics.co.uk/wiki/images/c/c3/Pifm.tar.gz
-tar -xvf Pifm.tar.gz
-echo "PiFly Setup:wget pifm" $? >> $logFilePath
-chown pi:pi pifm.c
-echo "PiFly Setup:Starting gcc -lm -std=gnu99 -g -xc pifm.c -o pifm &> $logFilePath" $? >> $logFilePath
-gcc -lm -std=gnu99 -g -xc pifm.c -o pifm &>> $logFilePath
+if [[-d pifm ]]
+then
+  cd pifm
+  git pull
+  echo "PiFly Setup:git pull of pifm result" $? >> $logFilePath
+else
+  git clone https://github.com/rm-hull/pifm
+  echo "PiFly Setup:git clone of pifm result" $? >> $logFilePath
+  cd ./pifm
+fi
+chown pi:pi pifm.cpp
+echo "PiFly Setup:Starting g++ -O3 -o pifm pifm.c" $? >> $logFilePath
+g++ -O3 -o pifm pifm.c &>> $logFilePath
 echo "PiFly Setup:pifm:g++ pifm" $? >> $logFilePath
-chown pi:pi pifm
+cd /home/pi/pifly
+chown -R pi:pi pifm
 #
 #
 #  Packet radio modulator. Text to modem .WAV file
@@ -369,6 +388,12 @@ echo "PiFly Setup:apt-getpython-matplotlibresult" $? >> $logFilePath
 sudo apt-get -y install scrot
 echo "PiFly Setup:mkdir pifly:apt-getapt-get scrotresult" $? >> $logFilePath
 #
+#
+#
+#
+# Install I2C tools
+sudo apt-get install i2c-tools
+echo "PiFly Setup:mkdir pifly:apt-get install i2c-tools" $? >> $logFilePath
 #
 echo ""
 echo "Remember to set country and time zone"
