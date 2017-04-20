@@ -97,6 +97,11 @@
 #      By: Robert S. Rau & Rob F. Rau II
 # Changes: updated pifm install
 #
+# Updated: 4/20/2017
+#    Rev.: 1.18
+#      By: Robert S. Rau & Rob F. Rau II
+# Changes: fixed typos and directory check syntak
+#
 # Things to think about
 # 1) Should we set up an email account "PiFlyUser" to make it easier for users to share or report problems?
 # 2) Should we set up a blog for sharing?
@@ -207,11 +212,11 @@ echo "PiFly Setup:USB drive setup:udevadm" $? >> $logFilePath
 # http://www.recantha.co.uk/blog/?p=13999
 #
 cd /home/pi/pifly
-if [[-d Adafruit-GPIO-Halt ]]
+if [ -d Adafruit-GPIO-Halt ]; then
 then
   cd Adafruit-GPIO-Halt
   git pull
-  echo "PiFly Setup:git pull of Adafruit_GPIO_Halt" $? >> $logFilePathelse
+  echo "PiFly Setup:git pull of Adafruit_GPIO_Halt" $? >> $logFilePath
 else
   git clone https://github.com/adafruit/Adafruit-GPIO-Halt
   echo "PiFly Setup:git clone of Adafruit_GPIO_Halt" $? >> $logFilePath
@@ -277,7 +282,7 @@ chown pi:pi nbfm
 #  rpitx - able to TX on 440MHz band, uses GPIO18 or GPIO4
 echo "PiFly setup: Starting rpitx setup"
 cd /home/pi/pifly
-if [[-d rpitx ]]
+if [ -d rpitx ]; then
 then
   cd rpitx
   git pull
@@ -298,7 +303,7 @@ chown -R pi:pi rpitx
 #  pifm - able to TX on 144MHz band, uses GPIO4
 echo "PiFly setup: Starting pifm setup"
 cd /home/pi/pifly
-if [[-d pifm ]]
+if [ -d pifm ]; then
 then
   cd pifm
   git pull
