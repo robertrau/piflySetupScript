@@ -100,7 +100,12 @@
 # Updated: 4/20/2017
 #    Rev.: 1.18
 #      By: Robert S. Rau & Rob F. Rau II
-# Changes: fixed typos and directory check syntak
+# Changes: fixed typos and directory check syntax
+#
+# Updated: 4/20/2017
+#    Rev.: 1.19
+#      By: Robert S. Rau & Rob F. Rau II
+# Changes: fixed pifly dir create (check first), fixed echos to log (removed reference to mkdir errors), fixed pifm g++
 #
 # Things to think about
 # 1) Should we set up an email account "PiFlyUser" to make it easier for users to share or report problems?
@@ -152,7 +157,11 @@ lsusb -t  >> $logFilePath
 # 1) Setup directory structure
 echo "PiFly setup: Starting directory setup"
 cd /home/pi
+if [ -d pifly ]; then
+# already there
+else
 mkdir pifly
+fi
 chown pi:pi pifly
 echo "PiFly Setup:mkdir pifly:result" $? >> $logFilePath
 # switch to install directory
@@ -161,7 +170,7 @@ cd /home/pi/pifly
 #
 #
 sudo apt-get update
-echo "PiFly Setup:mkdir pifly:sudo apt-get update" $? >> $logFilePath
+echo "PiFly Setup:sudo apt-get update" $? >> $logFilePath
 #
 #
 #
@@ -213,7 +222,6 @@ echo "PiFly Setup:USB drive setup:udevadm" $? >> $logFilePath
 #
 cd /home/pi/pifly
 if [ -d Adafruit-GPIO-Halt ]; then
-then
   cd Adafruit-GPIO-Halt
   git pull
   echo "PiFly Setup:git pull of Adafruit_GPIO_Halt" $? >> $logFilePath
@@ -274,7 +282,7 @@ wget https://raw.githubusercontent.com/fotografAle/NBFM/master/nbfm.c
 echo "PiFly Setup:nbfm:wget" $? >> $logFilePath
 chown pi:pi nbfm.c
 echo "PiFly Setup:Starting gcc -o3 -lm -std=gnu99 -o nbfm nbfm.c &> $logFilePath" $? >> $logFilePath
-gcc -o3 -lm -std=gnu99 -o nbfm nbfm.c &>> $logFilePath                 # changed from -std=c99 to -std=gnu99
+gcc -O3 -lm -std=gnu99 -o nbfm nbfm.c &>> $logFilePath                 # changed from -std=c99 to -std=gnu99
 echo "PiFly Setup:nbfm:gcc nbfm" $? >> $logFilePath
 chown pi:pi nbfm
 #
@@ -283,7 +291,6 @@ chown pi:pi nbfm
 echo "PiFly setup: Starting rpitx setup"
 cd /home/pi/pifly
 if [ -d rpitx ]; then
-then
   cd rpitx
   git pull
   echo "PiFly Setup:git pull of rpitx result" $? >> $logFilePath
@@ -304,7 +311,6 @@ chown -R pi:pi rpitx
 echo "PiFly setup: Starting pifm setup"
 cd /home/pi/pifly
 if [ -d pifm ]; then
-then
   cd pifm
   git pull
   echo "PiFly Setup:git pull of pifm result" $? >> $logFilePath
@@ -314,8 +320,8 @@ else
   cd ./pifm
 fi
 chown pi:pi pifm.cpp
-echo "PiFly Setup:Starting g++ -O3 -o pifm pifm.c" $? >> $logFilePath
-g++ -O3 -o pifm pifm.c &>> $logFilePath
+echo "PiFly Setup:Starting g++ -O3 -o pifm pifm.cpp" $? >> $logFilePath
+g++ -O3 -o pifm pifm.cpp &>> $logFilePath
 echo "PiFly Setup:pifm:g++ pifm" $? >> $logFilePath
 cd /home/pi/pifly
 chown -R pi:pi pifm
@@ -391,14 +397,14 @@ echo "PiFly Setup:apt-getpython-matplotlibresult" $? >> $logFilePath
 #
 # Screen capture tool
 sudo apt-get -y install scrot
-echo "PiFly Setup:mkdir pifly:apt-getapt-get scrotresult" $? >> $logFilePath
+echo "PiFly Setup:apt-getapt-get scrotresult" $? >> $logFilePath
 #
 #
 #
 #
 # Install I2C tools
 sudo apt-get install i2c-tools
-echo "PiFly Setup:mkdir pifly:apt-get install i2c-tools" $? >> $logFilePath
+echo "PiFly Setup:apt-get install i2c-tools" $? >> $logFilePath
 #
 echo ""
 echo "Remember to set country and time zone"
