@@ -112,6 +112,11 @@
 #      By: Robert S. Rau & Rob F. Rau II
 # Changes: fixed pifly dir create (added echo to log file to fix syntax error), fixed echos to log (removed reference to mkdir errors), fixed pifm g++, changed nbfm install from wget to git clone
 #
+# Updated: 4/22/2017
+#    Rev.: 1.21
+#      By: Robert S. Rau & Rob F. Rau II
+# Changes: fixed chown on NBFM, added chmod for TX-CPUTemp... in NBFM, cleaned up and added to system status log in beginning. Added additional comments for beginners.
+#
 # Things to think about
 # 1) Should we set up an email account "PiFlyUser" to make it easier for users to share or report problems?
 # 2) Should we set up a blog for sharing?
@@ -120,6 +125,7 @@
 # 5) Should the end of the script remind the user to set time zone, country, and so on?
 # 6) Cleanup, remove source and unnecessary files?
 # 7) Need to abort on failure
+# 8) 
 #
 #
 #Time setup
@@ -131,7 +137,7 @@ mydirectory=$(pwd)     #  remember what directory I started in
 #
 # 0) Check that we are running with root permissions
 if [[ $EUID > 0 ]]; then
-	echo "Please run using sudo"
+	echo "Please run using: sudo ./piflysetup.sh"
 	exit
 fi
 echo "" >> $logFilePath
@@ -140,15 +146,24 @@ echo "PiFly Setup:Start Run in sudo" >> $logFilePath
 date >> $logFilePath
 ping -c 1 8.8.8.8
 if [[ $? > 0 ]]; then
-    echo "No Network connection"
+    echo ""
+    echo "No Network connection. Have you connected with your WiFi network or plugged in your network cable before running this?"
     echo "PiFly Setup:No network connection" >> $logFilePath
     exit
 fi
 echo "PiFly Setup:Have network connection" >> $logFilePath
+echo "" >> $logFilePath
+echo "PiFly Setup:uname -a:" >> $logFilePath
 uname -a >> $logFilePath
+echo "" >> $logFilePath
+echo "PiFly Setup:cat /proc/cpuinfo:" >> $logFilePath
 cat /proc/cpuinfo >> $logFilePath
-echo "PiFly Setup:USB info:" >> $logFilePath
+echo "" >> $logFilePath
+echo "PiFly Setup:lsusb -t:" >> $logFilePath
 lsusb -t  >> $logFilePath
+echo "" >> $logFilePath
+echo "PiFly Setup:lsmod:" >> $logFilePath
+lsmod >> $logFilePath
 #
 #
 #
@@ -160,6 +175,7 @@ lsusb -t  >> $logFilePath
 #
 #
 ########## 1) Setup directory structure
+echo "" >> $logFilePath
 echo "PiFly setup: Starting directory setup"
 cd /home/pi
 if [ -d pifly ]; then
@@ -296,11 +312,12 @@ else
   echo "PiFly Setup:git clone of nbfm result" $? >> $logFilePath
   cd ./NBFM
 fi
+chmod +x TX-CPUTemp.sh
 echo "PiFly Setup:Starting gcc -O3 -lm -std=gnu99 -o nbfm nbfm.c &> $logFilePath" $? >> $logFilePath
 gcc -O3 -lm -std=gnu99 -o nbfm nbfm.c &>> $logFilePath                 # changed from -std=c99 to -std=gnu99, and -o3 to -O3
 echo "PiFly Setup:nbfm:gcc nbfm" $? >> $logFilePath
 cd /home/pi/pifly
-chown -R pi:pi nbfm
+chown -R pi:pi NBFM
 #
 #
 #  rpitx - able to TX on 440MHz band, uses GPIO18 or GPIO4
@@ -424,5 +441,4 @@ echo "PiFly Setup:apt-get install i2c-tools" $? >> $logFilePath
 #
 echo ""
 echo "Remember to set country and time zone"
-echo "If plugged in a"
 # Should load some libpifly examples
