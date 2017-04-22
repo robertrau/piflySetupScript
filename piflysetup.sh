@@ -105,7 +105,12 @@
 # Updated: 4/20/2017
 #    Rev.: 1.19
 #      By: Robert S. Rau & Rob F. Rau II
-# Changes: fixed pifly dir create (check first), fixed echos to log (removed reference to mkdir errors), fixed pifm g++
+# Changes: fixed pifly dir create (check first), fixed echos
+#
+# Updated: 4/22/2017
+#    Rev.: 1.20
+#      By: Robert S. Rau & Rob F. Rau II
+# Changes: fixed pifly dir create (added echo to log file to fix syntax error), fixed echos to log (removed reference to mkdir errors), fixed pifm g++, changed nbfm install from wget to git clone
 #
 # Things to think about
 # 1) Should we set up an email account "PiFlyUser" to make it easier for users to share or report problems?
@@ -154,13 +159,14 @@ lsusb -t  >> $logFilePath
 #
 #
 #
-# 1) Setup directory structure
+########## 1) Setup directory structure
 echo "PiFly setup: Starting directory setup"
 cd /home/pi
 if [ -d pifly ]; then
-# already there
+echo "PiFly Setup:pifly directory already exists" $? >> $logFilePath
 else
 mkdir pifly
+echo "PiFly Setup:pifly directory created" $? >> $logFilePath
 fi
 chown pi:pi pifly
 echo "PiFly Setup:mkdir pifly:result" $? >> $logFilePath
@@ -181,7 +187,7 @@ echo "PiFly Setup:sudo apt-get update" $? >> $logFilePath
 #
 #
 #
-# 2) Set up Raspberry Pi configuration
+########## 2) Set up Raspberry Pi configuration
 # see:https://www.raspberrypi.org/forums/viewtopic.php?f=44&t=130619
 # for SPI see (see DMA note at bottom):https://www.raspberrypi.org/documentation/hardware/raspberrypi/spi/README.md
 echo "PiFly setup: StartingRaspberry Pi configuration"
@@ -267,24 +273,34 @@ cat /boot/cmdline.txt >> $logFilePath
 #
 #
 #
-#
-#
 # SPI speed
 # https://raspberrypi.stackexchange.com/questions/699/what-spi-frequencies-does-raspberry-pi-support
 #
 #
 #
-# 3) install RF transmitters and modulators
+#
+#
+#
+#
+#
+########## 3) install RF transmitters and modulators
 #
 #  nbfm - narrow band FM - 144MHz transmitter, uses GPIO4
 cd /home/pi/pifly
-wget https://raw.githubusercontent.com/fotografAle/NBFM/master/nbfm.c
-echo "PiFly Setup:nbfm:wget" $? >> $logFilePath
-chown pi:pi nbfm.c
-echo "PiFly Setup:Starting gcc -o3 -lm -std=gnu99 -o nbfm nbfm.c &> $logFilePath" $? >> $logFilePath
-gcc -O3 -lm -std=gnu99 -o nbfm nbfm.c &>> $logFilePath                 # changed from -std=c99 to -std=gnu99
+if [ -d NBFM ]; then
+  cd NBFM
+  git pull
+  echo "PiFly Setup:git pull of nbfm result" $? >> $logFilePath
+else
+  git clone https://github.com/fotografAle/NBFM
+  echo "PiFly Setup:git clone of nbfm result" $? >> $logFilePath
+  cd ./NBFM
+fi
+echo "PiFly Setup:Starting gcc -O3 -lm -std=gnu99 -o nbfm nbfm.c &> $logFilePath" $? >> $logFilePath
+gcc -O3 -lm -std=gnu99 -o nbfm nbfm.c &>> $logFilePath                 # changed from -std=c99 to -std=gnu99, and -o3 to -O3
 echo "PiFly Setup:nbfm:gcc nbfm" $? >> $logFilePath
-chown pi:pi nbfm
+cd /home/pi/pifly
+chown -R pi:pi nbfm
 #
 #
 #  rpitx - able to TX on 440MHz band, uses GPIO18 or GPIO4
@@ -349,7 +365,7 @@ chown pi:pi pkt2wave
 #
 #
 #
-# 4) install audio support
+########## 4) install audio support
 #
 # Text to speech and text to wave support    see:https://learn.adafruit.com/speech-synthesis-on-the-raspberry-pi/installing-the-festival-speech-package
 echo "PiFly setup: Startingfestivalsetup"
@@ -367,7 +383,7 @@ echo "PiFly Setup:apt-get festival result" $? >> $logFilePath
 #
 #
 #
-# 5) Video downlink support
+########## 5) Video downlink support
 #
 # Python matplotlib
 sudo apt-get -y install python-matplotlib
@@ -381,7 +397,7 @@ echo "PiFly Setup:apt-getpython-matplotlibresult" $? >> $logFilePath
 #
 #
 #
-# 6) High current output support
+########## 6) High current output support
 #
 # see  http://abyz.co.uk/rpi/pigpio/index.html
 #
@@ -393,7 +409,7 @@ echo "PiFly Setup:apt-getpython-matplotlibresult" $? >> $logFilePath
 #
 #
 #
-# 7) Developer tools
+########## 7) Developer tools
 #
 # Screen capture tool
 sudo apt-get -y install scrot
