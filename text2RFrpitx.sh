@@ -15,6 +15,16 @@
 #      By: Robert S. Rau
 # Changes: fixed text2wave sample rate, fixed gpio -g write 6 1
 #
+# Updated: 4/23/2017
+#    Rev.: 1.03
+#      By: Robert S. Rau
+# Changes: Fixed gpio -g write 6 0
+#
+# Updated: 4/23/2017
+#    Rev.: 1.04
+#      By: Robert S. Rau
+# Changes: Must empty fm.ft before pifm. Fixed text2wave source text.
+#
 #
 #
 #text2wave [options] textfile
@@ -29,8 +39,9 @@
 #  -eval <string>  File or lisp s-expression to be evaluated before
 #                  synthesis.
 # Convert text to WAV file
-echo "CALLSIGN Testing, this is a test of this thing" | text2wave -o t.wav -F 48000
+echo "CALL SIGN Testing this is a test of this thing" | text2wave -o t.wav -F 48000
 #
+> fm.ft
 # Now convert the WAV file to a frequency-time file
 sudo ./pifm t.wav fm.ft
 #
@@ -64,5 +75,5 @@ gpio -g write 6 1
 # Transmit the .ft file
 sudo ./rpitx -m RF -i fm.ft -f 144390 -c 1
 # turn off the RF amplifier
-gpio -g write 6 1
+gpio -g write 6 0
 
