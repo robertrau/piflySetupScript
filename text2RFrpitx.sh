@@ -1,5 +1,5 @@
 #!/bin/bash
-# This script Tests the festival and nbfm install
+# This script Tests the festival and nbfm install modified for PiFly
 #
 # Written: 4/8/2017
 #    Rev.: 1.00
@@ -9,6 +9,11 @@
 #    Rev.: 1.01
 #      By: Robert S. Rau
 # Changes: replaced python control of RF amp with gpio commands
+#
+# Updated: 4/23/2017
+#    Rev.: 1.02
+#      By: Robert S. Rau
+# Changes: fixed text2wave sample rate, fixed gpio -g write 6 1
 #
 #
 #
@@ -24,20 +29,21 @@
 #  -eval <string>  File or lisp s-expression to be evaluated before
 #                  synthesis.
 # Convert text to WAV file
-echo "this is a test of this thing" | text2wave -o t.wav -F 11025
+echo "CALLSIGN Testing, this is a test of this thing" | text2wave -o t.wav -F 48000
 #
 # Now convert the WAV file to a frequency-time file
 sudo ./pifm t.wav fm.ft
 #
 # Select GPIO4, pin 7, for the transmitter carrier. Turn the RF amplifier on.
 #
-# RF carrier multiplexer
+# RF carrier multiplexer to GPIO 4 (pin 7)
 gpio -g mode 27 out
 gpio -g write 27 1
 #
-# RF amplifier power
+# RF amplifier power on
 gpio -g mode 6 out
-gpio -g write 6 1#
+gpio -g write 6 1
+#
 #
 #
 #
@@ -54,5 +60,9 @@ gpio -g write 6 1#
 #-d int 	      DMABurstSize (default 1000) but for very short message, could be decrease
 #-c 1          Transmit on GPIO 4 (Pin 7) instead of GPIO 18
 #-h            help (this help).
-# Transmit the WAV file
-sudo ./rpitx -m RF -i fm.ft -f 433900 -c 1
+#
+# Transmit the .ft file
+sudo ./rpitx -m RF -i fm.ft -f 144390 -c 1
+# turn off the RF amplifier
+gpio -g write 6 1
+
