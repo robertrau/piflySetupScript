@@ -115,7 +115,7 @@
 # Updated: 4/22/2017
 #    Rev.: 1.21
 #      By: Robert S. Rau & Rob F. Rau II
-# Changes: fixed chown on NBFM, added chmod for TX-CPUTemp... in NBFM, cleaned up and added to system status log in beginning. Added additional comments for beginners.
+# Changes: Fixed chown on NBFM, added chmod for TX-CPUTemp... in NBFM, cleaned up and added to system status log in beginning. Added additional comments for beginners.
 #
 # Things to think about
 # 1) Should we set up an email account "PiFlyUser" to make it easier for users to share or report problems?
@@ -125,7 +125,8 @@
 # 5) Should the end of the script remind the user to set time zone, country, and so on?
 # 6) Cleanup, remove source and unnecessary files?
 # 7) Need to abort on failure
-# 8) 
+# 8) Need to check that there is enough space to do the whole install.
+# 9) How to work on 2.3.0?, works on NOOBS 1.50, 1.70, 1.80, 1.90, but not 1.92 on.
 #
 #
 #Time setup
