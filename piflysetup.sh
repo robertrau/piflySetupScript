@@ -117,6 +117,11 @@
 #      By: Robert S. Rau & Rob F. Rau II
 # Changes: Fixed chown on NBFM, added chmod for TX-CPUTemp... in NBFM, cleaned up and added to system status log in beginning. Added additional comments for beginners.
 #
+# Updated: 4/23/2017
+#    Rev.: 1.22
+#      By: Robert S. Rau & Rob F. Rau II
+# Changes: Added to 'Things to think about'. moved rpitx demo script into rpitx directory
+#
 # Things to think about
 # 1) Should we set up an email account "PiFlyUser" to make it easier for users to share or report problems?
 # 2) Should we set up a blog for sharing?
@@ -335,6 +340,9 @@ else
 fi
 sudo ./install.sh
 echo "PiFly Setup:rpitx install result" $? >> $logFilePath
+#
+# Fetch demo script
+cp /home/pi/piflysetupscript/text2RFrpitx.sh .
 cd /home/pi/pifly
 chown -R pi:pi rpitx
 #

@@ -1,9 +1,16 @@
 #!/bin/bash
 # This script Tests the festival and nbfm install
 #
-#Written: 4/8/2017
-#  Rev.: 1.00
-#   By: Robert S. Rau & Rob F. Rau II
+# Written: 4/8/2017
+#    Rev.: 1.00
+#      By: Robert S. Rau & Rob F. Rau II
+#
+# Updated: 4/23/2017
+#    Rev.: 1.01
+#      By: Robert S. Rau
+# Changes: replaced python control of RF amp with gpio commands
+#
+#
 #
 #text2wave [options] textfile
 #  Convert a textfile to a waveform
@@ -21,9 +28,16 @@ echo "this is a test of this thing" | text2wave -o t.wav -F 11025
 #
 # Now convert the WAV file to a frequency-time file
 sudo ./pifm t.wav fm.ft
-# Select GPIO4, pin 7, for the transmitter carrier. Turn the RF amplifier on.
-sudo python piflyTransmit144.py
 #
+# Select GPIO4, pin 7, for the transmitter carrier. Turn the RF amplifier on.
+#
+# RF carrier multiplexer
+gpio -g mode 27 out
+gpio -g write 27 1
+#
+# RF amplifier power
+gpio -g mode 6 out
+gpio -g write 6 1#
 #
 #
 #
@@ -41,4 +55,4 @@ sudo python piflyTransmit144.py
 #-c 1          Transmit on GPIO 4 (Pin 7) instead of GPIO 18
 #-h            help (this help).
 # Transmit the WAV file
-sudo ./rpitx -m RF -i fm.ft -f 433900 -c 1 -l
+sudo ./rpitx -m RF -i fm.ft -f 433900 -c 1
