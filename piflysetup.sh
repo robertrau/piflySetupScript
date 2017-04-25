@@ -134,7 +134,7 @@
 # Updated: 4/25/2017
 #    Rev.: 1.25
 #      By: Robert S. Rau & Rob F. Rau II
-# Changes: 
+# Changes: typos
 #
 PIFLYSETUPVERSION=1.25
 #
