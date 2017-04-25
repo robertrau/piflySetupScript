@@ -126,6 +126,12 @@
 #      By: Robert S. Rau & Rob F. Rau II
 # Changes: Slowed down speech from test2wave
 #
+# Updated: 4/25/2017
+#    Rev.: 1.24
+#      By: Robert S. Rau & Rob F. Rau II
+# Changes: Moved Demo144-39MHz.sh into rpitx directory. added pifly setup script version logging. Added user instructions at end of install.
+#
+PIFLYSETUPVERSION=1.24
 #
 # Things to think about
 # 1) Should we set up an email account "PiFlyUser" to make it easier for users to share or report problems?
@@ -136,7 +142,7 @@
 # 6) Cleanup, remove source and unnecessary files?
 # 7) Need to abort on failure
 # 8) Need to check that there is enough space to do the whole install.
-# 9) How to work on 2.3.0?, works on NOOBS 1.50, 1.70, 1.80, 1.90, but not 1.92 on.
+# 9) How to get pifm and nbfm to work on any NOOBS from 1.9.2 on?, They work on NOOBS 1.50, 1.70, 1.80, 1.90. rpitx works on all 2.3.0
 #
 #
 #Time setup
@@ -152,7 +158,7 @@ if [[ $EUID > 0 ]]; then
 	exit
 fi
 echo "" >> $logFilePath
-echo "PiFly Setup Script" >> $logFilePath
+echo "PiFly Setup Script version" $PIFLYSETUPVERSION >> $logFilePath
 echo "PiFly Setup:Start Run in sudo" >> $logFilePath
 date >> $logFilePath
 ping -c 1 8.8.8.8
@@ -346,8 +352,9 @@ fi
 sudo ./install.sh
 echo "PiFly Setup:rpitx install result" $? >> $logFilePath
 #
-# Fetch demo script
+# Fetch demo scripts
 cp /home/pi/piflysetupscript/text2RFrpitx.sh .
+mv /home/pi/piflysetupscript/Demo144-39MHz.sh .
 cd /home/pi/pifly
 chown -R pi:pi rpitx
 #
@@ -458,5 +465,7 @@ sudo apt-get install i2c-tools
 echo "PiFly Setup:apt-get install i2c-tools" $? >> $logFilePath
 #
 echo ""
+echo "PiFly Setup Script version" $PIFLYSETUPVERSION
+echo "USB flash drives are read-write. The shutdown button issues the shutdown command. You must re-boot for the new cmdline.txt to apply."
 echo "Remember to set country and time zone"
 # Should load some libpifly examples
