@@ -131,7 +131,12 @@
 #      By: Robert S. Rau & Rob F. Rau II
 # Changes: Moved Demo144-39MHz.sh into rpitx directory. added pifly setup script version logging. Added user instructions at end of install.
 #
-PIFLYSETUPVERSION=1.24
+# Updated: 4/25/2017
+#    Rev.: 1.25
+#      By: Robert S. Rau & Rob F. Rau II
+# Changes: 
+#
+PIFLYSETUPVERSION=1.25
 #
 # Things to think about
 # 1) Should we set up an email account "PiFlyUser" to make it easier for users to share or report problems?
@@ -142,7 +147,7 @@ PIFLYSETUPVERSION=1.24
 # 6) Cleanup, remove source and unnecessary files?
 # 7) Need to abort on failure
 # 8) Need to check that there is enough space to do the whole install.
-# 9) How to get pifm and nbfm to work on any NOOBS from 1.9.2 on?, They work on NOOBS 1.50, 1.70, 1.80, 1.90. rpitx works on all 2.3.0
+# 9) How to get pifm and nbfm to work on any NOOBS from 1.9.2 on?, They work on NOOBS 1.50, 1.70, 1.80, 1.90. rpitx works on 2.3.0
 #
 #
 #Time setup
@@ -155,7 +160,8 @@ mydirectory=$(pwd)     #  remember what directory I started in
 # 0) Check that we are running with root permissions
 if [[ $EUID > 0 ]]; then
 	echo "Please run using: sudo ./piflysetup.sh"
-	exit
+    echo "PiFly Setup:Aborted, not in sudo." >> $logFilePath
+    exit
 fi
 echo "" >> $logFilePath
 echo "PiFly Setup Script version" $PIFLYSETUPVERSION >> $logFilePath
@@ -165,7 +171,7 @@ ping -c 1 8.8.8.8
 if [[ $? > 0 ]]; then
     echo ""
     echo "No Network connection. Have you connected with your WiFi network or plugged in your network cable before running this?"
-    echo "PiFly Setup:No network connection" >> $logFilePath
+    echo "PiFly Setup:Aborted, no network connection" >> $logFilePath
     exit
 fi
 echo "PiFly Setup:Have network connection" >> $logFilePath
