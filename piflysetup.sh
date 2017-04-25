@@ -1,39 +1,39 @@
 #!/bin/bash
 # This script takes a fresh Raspberry Pi Zero NOOBS 2.3.0 install (No other installations!) and sets up the PiFly development environment
-#See www.rau-deaver.org/Project_PiFly.html
+# See www.rau-deaver.org/Project_PiFly.html
 #
-#Written: 3/26/2017
-#  Rev.: 1.00
-#   By: Robert S. Rau & Rob F. Rau II
+# Written: 3/26/2017
+#    Rev.: 1.00
+#      By: Robert S. Rau & Rob F. Rau II
 #
-#Updated: 3/26/2017
-#  Rev.: 1.01
-#   By: Robert S. Rau & Rob F. Rau II
+# Updated: 3/26/2017
+#    Rev.: 1.01
+#      By: Robert S. Rau & Rob F. Rau II
 # Changes: fixed matplotlib, creating pifly/log, pkt2wave
 #
-#Updated: 3/26/2017
-#  Rev.: 1.02
-#   By: Robert S. Rau & Rob F. Rau II
+# Updated: 3/26/2017
+#    Rev.: 1.02
+#      By: Robert S. Rau & Rob F. Rau II
 # Changes: added links for GPIO support, audio output, shutdown support, I2C, SPI. setup. Updated gcc command line for nbfm. cd to working directory in #1 (pifly)
 #
-#Updated: 4/2/2017
-#  Rev.: 1.03
-#   By: Robert S. Rau & Rob F. Rau II
+# Updated: 4/2/2017
+#    Rev.: 1.03
+#      By: Robert S. Rau & Rob F. Rau II
 # Changes: added sudo check, added cmdline.txt, added apt-get update
 #
-#Updated: 4/2/2017
-#  Rev.: 1.04
-#   By: Robert S. Rau & Rob F. Rau II
+# Updated: 4/2/2017
+#    Rev.: 1.04
+#      By: Robert S. Rau & Rob F. Rau II
 # Changes: added logging
 #
-#Updated: 4/4/2017
-#  Rev.: 1.05
-#   By: Robert S. Rau & Rob F. Rau II
+# Updated: 4/4/2017
+#    Rev.: 1.05
+#      By: Robert S. Rau & Rob F. Rau II
 # Changes: fixed file append for log file, added linux version, Pi version, and date/time to log, comments about time setup, changed log file name to all lower case, Adafruit_GPIO_Hale
 #
-#Updated: 4/5/2017
-#  Rev.: 1.06
-#   By: Robert S. Rau & Rob F. Rau II
+# Updated: 4/5/2017
+#    Rev.: 1.06
+#      By: Robert S. Rau & Rob F. Rau II
 # Changes: fixed file append for log file after scrot and matplorlib
 #
 # Updated: 4/8/2017
@@ -45,7 +45,6 @@
 #    Rev.: 1.08
 #      By: Robert S. Rau & Rob F. Rau II
 # Changes: added pifm, copy cmdline to log, 
-#
 #
 # Updated: 4/8/2017
 #    Rev.: 1.09
@@ -121,6 +120,12 @@
 #    Rev.: 1.22
 #      By: Robert S. Rau & Rob F. Rau II
 # Changes: Added to 'Things to think about'. moved rpitx demo script into rpitx directory
+#
+# Updated: 4/24/2017
+#    Rev.: 1.23
+#      By: Robert S. Rau & Rob F. Rau II
+# Changes: Slowed down speech from test2wave
+#
 #
 # Things to think about
 # 1) Should we set up an email account "PiFlyUser" to make it easier for users to share or report problems?
@@ -397,6 +402,10 @@ chown pi:pi pkt2wave
 echo "PiFly setup: Startingfestivalsetup"
 sudo apt-get -y install festival
 echo "PiFly Setup:apt-get festival result" $? >> $logFilePath
+#
+# Slow down rate of speech a bit
+sudo sed -i.bak -e 's/(Parameter.set 'Duration_Stretch 1.1)/(Parameter.set 'Duration_Stretch 1.6)/'  /usr/share/festival/voices/english/kal_diphone/festvox/kal_diphone.scm
+echo "PiFly Setup:Slow down of speech" $? >> $logFilePath
 #
 #
 # set up audio output
