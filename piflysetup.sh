@@ -136,7 +136,12 @@
 #      By: Robert S. Rau & Rob F. Rau II
 # Changes: typos
 #
-PIFLYSETUPVERSION=1.25
+# Updated: 4/30/2017
+#    Rev.: 1.26
+#      By: Robert S. Rau & Rob F. Rau II
+# Changes: Festival fails to operate correctly when installed after rpitx and matplotlib, moved near top, sed substitute syntax fixed, now use double quotes. push button shutdown is now broken :-(, don't know why yet.
+#
+PIFLYSETUPVERSION=1.26
 #
 # Things to think about
 # 1) Should we set up an email account "PiFlyUser" to make it easier for users to share or report problems?
@@ -196,7 +201,6 @@ lsmod >> $logFilePath
 #
 #
 #
-#
 ########## 1) Setup directory structure
 echo "" >> $logFilePath
 echo "PiFly setup: Starting directory setup"
@@ -220,6 +224,15 @@ echo "PiFly Setup:sudo apt-get update" $? >> $logFilePath
 #
 #
 #
+# Must install Festival before others or it text2wave fails to convert whole string
+# Text to speech and text to wave support    see:https://learn.adafruit.com/speech-synthesis-on-the-raspberry-pi/installing-the-festival-speech-package
+echo "PiFly setup: Startingfestivalsetup"
+sudo apt-get -y install festival
+echo "PiFly Setup:apt-get festival result" $? >> $logFilePath
+#
+# Slow down rate of speech a bit
+sudo sed -i.bak -e "s/(Parameter.set 'Duration_Stretch 1.1)/(Parameter.set 'Duration_Stretch 1.6)/"  /usr/share/festival/voices/english/kal_diphone/festvox/kal_diphone.scm
+echo "PiFly Setup:Slow down of speech" $? >> $logFilePath
 #
 #
 #
@@ -411,14 +424,7 @@ chown pi:pi pkt2wave
 #
 ########## 4) install audio support
 #
-# Text to speech and text to wave support    see:https://learn.adafruit.com/speech-synthesis-on-the-raspberry-pi/installing-the-festival-speech-package
-echo "PiFly setup: Startingfestivalsetup"
-sudo apt-get -y install festival
-echo "PiFly Setup:apt-get festival result" $? >> $logFilePath
-#
-# Slow down rate of speech a bit
-sudo sed -i.bak -e 's/(Parameter.set 'Duration_Stretch 1.1)/(Parameter.set 'Duration_Stretch 1.6)/'  /usr/share/festival/voices/english/kal_diphone/festvox/kal_diphone.scm
-echo "PiFly Setup:Slow down of speech" $? >> $logFilePath
+# Text to speech and text to wave support    see:https://learn.adafruit.com/speech-synthesis-on-the-raspberry-pi/installing-the-festival-speech-package  ***** moved to top  ****
 #
 #
 # set up audio output
