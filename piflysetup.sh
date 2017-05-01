@@ -141,7 +141,13 @@
 #      By: Robert S. Rau & Rob F. Rau II
 # Changes: Festival fails to operate correctly when installed after rpitx and matplotlib, moved near top, sed substitute syntax fixed, now use double quotes. push button shutdown is now broken :-(, don't know why yet.
 #
-PIFLYSETUPVERSION=1.26
+# Updated: 4/30/2017
+#    Rev.: 1.27
+#      By: Robert S. Rau & Rob F. Rau II
+# Changes: Added SoX to install so text2wave could work with smaller sample rates and then we could resample up to 48000 for pifm to produce a .ft file for rpitx, added gpio_alt and used it to tie PWM1 to GPIO13. some sudos removed
+#
+#
+PIFLYSETUPVERSION=1.27
 #
 # Things to think about
 # 1) Should we set up an email account "PiFlyUser" to make it easier for users to share or report problems?
@@ -233,6 +239,15 @@ echo "PiFly Setup:apt-get festival result" $? >> $logFilePath
 # Slow down rate of speech a bit
 sudo sed -i.bak -e "s/(Parameter.set 'Duration_Stretch 1.1)/(Parameter.set 'Duration_Stretch 1.6)/"  /usr/share/festival/voices/english/kal_diphone/festvox/kal_diphone.scm
 echo "PiFly Setup:Slow down of speech" $? >> $logFilePath
+#
+#
+#
+#
+# SoX resample support
+echo "PiFly setup: StartingSoXsetup"
+sudo apt-get -y install SoX
+echo "PiFly Setup:apt-get SoX result" $? >> $logFilePath
+#
 #
 #
 #
@@ -429,6 +444,29 @@ chown pi:pi pkt2wave
 #
 # set up audio output
 #  https://learn.adafruit.com/adding-basic-audio-ouput-to-raspberry-pi-zero/pi-zero-pwm-audio
+apt-get install raspi-gpio
+echo "PiFly Setup:apt-get install raspi-gpio result" $? >> $logFilePath
+#
+# now get gpio_alt.c
+cd /home/pi/pifly
+if [ -d LEDMatrix ]; then
+  cd LEDMatrix
+  git pull
+  echo "PiFly Setup:git pull of LEDMatrix result" $? >> $logFilePath
+else
+  git clone https://github.com/KawaniwaHikaru/LEDMatrix
+  echo "PiFly Setup:git clone of LEDMatrix result" $? >> $logFilePath
+  cd ./LEDMatrix
+fi
+cd src
+gcc -o gpio_alt gpio_alt.c
+echo "PiFly Setup:gcc of gpio_alt.c result" $? >> $logFilePath
+chown root:root gpio_alt
+chmod u+s gpio_alt
+mv gpio_alt /usr/local/bin/
+echo "PiFly Setup:move of gpio_alt.c to /usr/local/bin/ result" $? >> $logFilePath
+gpio_alt -p 13 -f 0
+echo "PiFly Setup:gpio_alt -p 13 -f 0 result" $? >> $logFilePath
 #
 #
 #
@@ -440,7 +478,7 @@ chown pi:pi pkt2wave
 ########## 5) Video downlink support
 #
 # Python matplotlib
-sudo apt-get -y install python-matplotlib
+apt-get -y install python-matplotlib
 #
 echo "PiFly Setup:apt-getpython-matplotlibresult" $? >> $logFilePath
 #
