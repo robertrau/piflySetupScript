@@ -1,5 +1,5 @@
 # piflySetupScript
-Bash script for Raspberry Pi Zero HAT board PiFly. Loads relevant software, sets permissions.
+Bash script for Raspberry Pi Zero HAT-ish board **PiFly**. Loads relevant software, sets permissions, and configures Linux startup.
 
 
 All trademarks are copyright of their respective owners. 
@@ -8,30 +8,42 @@ The PiFly board is designed for drones, high power rocketry, and RC airplanes. T
 
 
 
-Usage
+**Usage**
 
+```
 cd ~
-
 git clone htpps://github.com/robertrau/piflysetupscript
-
 cd piflysetupscript
-
 sudo ./piflysetup.sh
+```
 
 
 
+**To check install log file**
 
-To check log file
-
+```
 cat /var/log/piflyinstalllog.txt
+```
 
+**Installed Software**
 
+    Inserted USB FLASH Drives are now writable
+    Pushbutton Shutdown on GPIO26 (pin 37)
+    Release of serial ports for SSH and Bluetooth, high speed serial needed for 50Hz update GPS
+    nbfm - Narrow Band FM Transmitter, doesn't work on NOOBS 1.92 and later
+    rpitx - Multimode FM Transmitter
+    Demo144-39MHz.sh - 144.39MHz transmit demo for rpitx
+    pifm - FM Transmitter, doesn't work on NOOBS 1.92 and later
+    pkt2wave - Converts text packet radio messages to .WAV files
+    Sets up audio output on GPIO13 (pin 33)
+    festival - text to speech package
+    SoX - Audio Resample
+    matplotlib - Plot Library for Python
+      
+    
 
-![Markdown preferences pane](http://192.168.1.42/Project_PiFly_files/droppedImage_3.jpg)
-*figure 1*
-
-## Features
-**• Power:** Designed to run on 3 to 12 volts, it is intended to run on one to three LiPo cells, but any power supply will do. A single power supply powers the Raspberry Pi, the HAT board, and its USB device from a 5 volt 2 amp buck-boost switching power supply. (The four high current outputs require at least 4.5 volts; i.e. two or three LiPo cells)
+## PiFly Hardware Features
+**• Power:** Designed to run on 3.2 to 12 volts, it is intended to run on one to three LiPo cells, but any power supply will do. A single power supply powers the Raspberry Pi, the HAT board, and its USB device from a 5 volt 2 amp buck-boost switching power supply. (The four high current outputs require at least 4.5 volts; i.e. two or three LiPo cells)
 
 **• Raspberry Pi compatible:** The PiFly is intended to connect to the Raspberry Pi Zero so that components of each board face away from the middle. A 40 pin socket could be soldered to the top of the board for use on the Raspberry Pi 3, or any 40 pin Raspberry Pi.
 
@@ -117,13 +129,13 @@ J8 is a reset pin that lines up with the reset pin on a Raspberry Pi Zero. This 
 The PiFly board has two RF outputs. Each one has its own filter for a specific RF band. The default build is for the 144MHz HAM band and the 434MHz HAM band. 144MHz transmission can be supported by pifm, nbfm, and rpitx. 440MHz transmission may someday be supported by rpitx on the Raspberry Pi Zero, but currently does not work. Rpitx works well on the Raspberry Pi 3. There has been no testing on other ‘compatible’ computers. Supports RF carrier from either GPIO4 or GPIO18 (also the I2S clock) selected with GPIO27. The on-board microphone can not be used with GPIO18 selected as the RF output. Below is a table for the multiplexor and the band.
 
 		GPIO27			Selected Timer Output		Supporting Software
-		Low				GPIO18 (shared with I2S)		rpitx
-		High			GPIO4							pifm, nbfm, rpitx
+		Low			GPIO18 (shared with I2S)		rpitx
+		High			GPIO4					pifm, nbfm, rpitx
 
 
-		Band		TX Output Connector			Supporting Software
-		144			J3							pifm, nbfm
-		433			J2							rpitx
+		Band			TX Output Connector			Supporting Software
+		144				J3					pifm, nbfm
+		433				J2					rpitx
 
 
 
@@ -146,7 +158,7 @@ The PiFly has eight servo outputs on P2 and P3. Please read the above Power sect
 	1.5ms		367
 	1.6ms		392
 
-The servo PWM pins have ESD protection. See Appendix C for additional information.
+The servo PWM pins have ESD protection.
 
 
 
@@ -167,16 +179,14 @@ At power up the high current outputs are not enabled. There is a flip-flop that 
 
 If protection is not required for your application, after enabling with FireEnableEdge, the individual Fire outputs may be activated or negated at will.
 
-For A/D measurements of output current or voltage, see the A/D section. See Appendix C for additional information.
-
+For A/D measurements of output current or voltage, see the A/D section.
 
 
 
 
 
 #### Headless Operation
-The PiFly board has support for headless operation.  There is a momentary push button on GPIO26 to request an orderly shutdown of the Raspberry Pi. There is also a LED that can be used to indicate that the software has received the request and is working on the shutdown. Here is a link to a tutorial on the Adafruit software for an external shutdown request. The software needs to be altered for using GPIO26 for the request and GPIO16 for the LED. In addition to the push button requesting a shutdown, there is a battery voltage comparator that can also request a shutdown if the input voltage gets too low. This is useful for remote applications such as solar powered installations or solar power recharged battery applications. If W5 is shorted, the comparator can request a shutdown when the input voltage falls below 3 volts. See Appendix C for additional information.
-
+The PiFly board has support for headless operation.  There is a momentary push button on GPIO26 to request an orderly shutdown of the Raspberry Pi. There is also a LED that can be used to indicate that the software has received the request and is working on the shutdown. Here is a link to a tutorial on the Adafruit software for an external shutdown request. The software needs to be altered for using GPIO26 for the request and GPIO16 for the LED. In addition to the push button requesting a shutdown, there is a battery voltage comparator that can also request a shutdown if the input voltage gets too low. This is useful for remote applications such as solar powered installations or solar power recharged battery applications. If W5 is shorted, the comparator can request a shutdown when the input voltage falls below 3 volts.
 
 #### USB Connector
 The PiFly board doesn’t have any USB electronics but it does allow the Raspberry Pi Zero’s USB port to be ‘re-directed’ to a type A connector that is mounted at the end of the PiFly board. This allows using a USB device in a narrow tube like a rocket body tube. Using this connector requires soldering three small wires from three test points on the Raspberry Pi Zero to three pads on the PiFly. This connection is not compatible with any other computer than the Raspberry Pi Zero.
@@ -186,11 +196,11 @@ The USB connector has ESD protection.
 #### GPS
 The PiFly board has a GPS receiver and SMA connector for an external antenna. Antenna preamp power is provided (3.3V) so either an active or passive antenna may be used. The RF input has a bandpass filter to prevent de-sense to the RF front end from the local transmitter. Below is a list of omnidirectional helical antennas, The Richardson RF antenna was used for design.
 
-Active:
+##### Active:
 	http://www.stepglobal.com/maxtena-m1227hct-a-l1-l2-gps-glonass-compact-active-helix-antenna
 	https://www.radiall.com/antennas/standard-short-gps-l-1-active-25db.html
 
-Passive:
+##### Passive:
 	http://www.richardsonrfpd.com/Pages/Product-Details.aspx?productId=1142163
 	http://www.stepglobal.com/maxtena-m1516hct-p-sma-l1-gps-glonass-compact-passive-helical-antenna
 
@@ -198,8 +208,7 @@ The GPS receiver powers up in standard NMEA-0183 format supporting GGA, GLL, GSA
 
 There are three options for back-up power for the almanac and ephemeris, a small SMT super capacitor (C2), a larger through-hole super capacitor (C58), or a external connection for a battery (P7). The Skytraq Venus638 may also used in this footprint by changing R74 & R108.
 
-The board may be assembled without the SkyTraq GPS and have the serial port available for another purpose, or an external GPS by using connector P6. See Appendix C for additional information.
-
+The board may be assembled without the SkyTraq GPS and have the serial port available for another purpose, or an external GPS by using connector P6.
 
 
 
@@ -212,9 +221,9 @@ The PiFly has a 16 channel A/D converter. The design is compatible with 8, 10, a
 	1		AnalogCH2, J7 pin 3		Application dependent
 	2		AnalogCH3, J7 pin 3		Application dependent
 	3		AnalogCH4, J7 pin 3		Application dependent
-	4		AnalogCH5, J7 pin 3		Application dependent, if thermistor, see appendix B
-	5		AnalogCH6, J7 pin 3		Application dependent, if thermistor, see appendix B
-	6		PiFly temperature		See appendix B
+	4		AnalogCH5, J7 pin 3		Application dependent
+	5		AnalogCH6, J7 pin 3		Application dependent
+	6		PiFly temperature
 	7		Keypad				See Keypad section below
 	8		Fire A current			<A/D> * 54.217 amps  (using 5V reference)
 	9		Fire B current			<A/D> * 54.217 amps  (using 5V reference)
@@ -225,13 +234,8 @@ The PiFly has a 16 channel A/D converter. The design is compatible with 8, 10, a
 	14		Fire B output voltage		<A/D> * 30 volts (using 2.5 volt reference)
 	15		Fire A output voltage		<A/D> * 30 volts (using 2.5 volt reference)
 
-This device is on the higher speed SPI bus so rapidly changing data can be captured accurately. The SPI address is SPI_ADDR1..0=0x2. See Appendix C for additional information.
+This device is on the higher speed SPI bus so rapidly changing data can be captured accurately. The SPI address is SPI_ADDR1..0=0x2.
 
-
-There is a small breakout board for the A/D converter analog input connector. This adapts the 0.050” pitch connector to some 0.10” connectors and also provides a voltage reference for additional thermistors. See figure 2.
-
- 
-figure 2
 
 
 #### Keypad Support
@@ -239,69 +243,43 @@ The PiFly board has a dedicated keypad connector. This connector supports a anal
 
 		http://rau-deaver.org/1-wire_keyboard.html 
 
-Below in figure 3 is a picture of the application with the A/D and resistor values filled in for the PiFly. Typically the application is used to take an A/D specification and keypad layout and give you resistor values, but that was done at the design of the PiFly. You just need to replace the values and generate your C code. One source for keypads with a compatible connector is XYMOX. See:
-http://www.xymox.com/stock-membrane-switches
-
- 
-figure 3
-
-        
-			figure 4									figure 5
-
-
-For a 3x4 keypad like a XYMOX part number 12654:
-R65 no pop
-R77 populate with 1.33kΩ
-R69 change to 4.75kΩ
-R66 change to 1.33kΩ
-R67 change to 1.33kΩ
 
 
 #### High G linear accelerometer
 The PiFly board has an accelerometer for high acceleration application like rocketry. This is the same sensor used by Altus Metrum in their TeleMega board, the MMA6555. See:
 http://altusmetrum.org/TeleMega/
-The device is mounted so –X acceleration is in the direction of the USB connector end of the board. This device is on the higher speed SPI bus so rapidly changing data can be captured accurately. The SPI address is SPI_ADDR1..0=0x1. See Appendix C for additional information.
-
+The device is mounted so –X acceleration is in the direction of the USB connector end of the board. This device is on the higher speed SPI bus so rapidly changing data can be captured accurately. The SPI address is SPI_ADDR1..0=0x1.
 
 
 
 #### Barometric Pressure Sensor
 The PiFly board has a pressure sensor for the measurement of atmospheric pressure.  This is the same sensor used by Altus Metrum in their TeleMega board, the MS560702BA03-00. See:
 http://altusmetrum.org/TeleMega/
-This device is on the higher speed SPI bus so rapidly changing data can be captured accurately. The SPI address is SPI_ADDR1..0=0x0. See Appendix C for additional information.
-
+This device is on the higher speed SPI bus so rapidly changing data can be captured accurately. The SPI address is SPI_ADDR1..0=0x0.
 
 
 #### 9 Axis Inertial and Magnetic Platform
-The PiFly board uses an Invensense (TDK) MPS-9250 for 3-axis acceleration, 3-axis gyro, and 3-axis magnetometer. Mounted on board centerline making it easier for the sensor to be on the centerline or your center of mass of your rocket/drone so you don’t have to mathematically back out roll accelerations. Mounted on board so +X acceleration is towards the GPS Antenna end of the board and +Y is towards the 40 pin Raspberry Pi connector. The magnetic coordinates are different from the acceleration reference frame. Uses I2C bus at address 0b1101001. See Appendix C for additional information.
-
+The PiFly board uses an Invensense (TDK) MPS-9250 for 3-axis acceleration, 3-axis gyro, and 3-axis magnetometer. Mounted on board centerline making it easier for the sensor to be on the centerline or your center of mass of your rocket/drone so you don’t have to mathematically back out roll accelerations. Mounted on board so +X acceleration is towards the GPS Antenna end of the board and +Y is towards the 40 pin Raspberry Pi connector. The magnetic coordinates are different from the acceleration reference frame. Uses I2C bus at address 0b1101001.
 
 
 
 
 #### Humidity sensor 
-Uses ST’s HTS221TR sensor as on Raspberry Pi’s Sensor HAT board. Uses I2C bus at address 0b1011111. See Appendix C for additional information.
-
-
+Uses ST’s HTS221TR sensor as on Raspberry Pi’s Sensor HAT board. Uses I2C bus at address 0b1011111.
 
 #### Differential Pressure Sensor
-For use with drone/aircraft Pitot tubes for airspeed. Measurement Specialties (TE Connectivity) 4525DO-DS5AI030DP. This is a through hole device that mounts over some SMT components. Uses I2C bus at address 0b0101000. See Appendix C for additional information.
-
+For use with drone/aircraft Pitot tubes for airspeed. Measurement Specialties (TE Connectivity) 4525DO-DS5AI030DP. This is a through hole device that mounts over some SMT components. Uses I2C bus at address 0b0101000.
 
 
 #### Audio Output
-There is a two-pin connector for headphone level audio output. See Appendix C for additional information.
-
+There is a two-pin connector for headphone level audio output.
 
 #### Microphone
-Knowles SPH0645LM4H-B on the I2S bus. The select pin is grounded so the microphone shows up on the Left channel. See Appendix C for additional information.
-
+Knowles SPH0645LM4H-B on the I2S bus. The select pin is grounded so the microphone shows up on the Left channel.
 
 #### Time of Day Clock
 To provide time for PiFlys built without a GPS, the Maxim DS3231S is an optional device. Battery Backup is provided by the same source as the GPS battery backup. Uses I2C bus at address 0b0101000. 
 
 
 #### Quad tachometer input
-Four channel tachometer input compatible with Spektrum SPM1452 sensors. Uses an Analog Devices ADT7470. With resistor changes the ADT7470 also supports GPIOs and a digital temperature sensor bus that can optionally be enabled at the expense of tachometer channels. This footprint is also compatible with the ON Semiconductor ADT7460 that supports low voltage level tachometer inputs. Uses I2C bus at address 0b0101110. See Appendix C for additional information. 
-
- 
+Four channel tachometer input compatible with Spektrum SPM1452 sensors. Uses an Analog Devices ADT7470. With resistor changes the ADT7470 also supports GPIOs and a digital temperature sensor bus that can optionally be enabled at the expense of tachometer channels. This footprint is also compatible with the ON Semiconductor ADT7460 that supports low voltage level tachometer inputs. Uses I2C bus at address 0b0101110. 
