@@ -1,5 +1,12 @@
 # Credit for Axllent.org
 # See: https://www.axllent.org/docs/view/auto-mounting-usb-storage/
+#
+# Updated: 5/7/2017
+#    Rev.: 1.01
+#      By: Robert S. Rau
+# Changes: Changed directory from /media to /media/pi since a fresh boot with USB FLASH drive installed ended up at /media/pi with our without this rule.
+#
+# 
 KERNEL!="sd[a-z][0-9]", GOTO="media_by_label_auto_mount_end"  
 # Import FS infos  
 IMPORT{program}="/sbin/blkid -o udev -p %N"  
@@ -11,8 +18,8 @@ ACTION=="add", ENV{mount_options}="relatime"
 # Filesystem-specific mount options  
 ACTION=="add", ENV{ID_FS_TYPE}=="vfat|ntfs", ENV{mount_options}="$env{mount_options},utf8,gid=100,umask=002"  
 # Mount the device  
-ACTION=="add", RUN+="/bin/mkdir -p /media/%E{dir_name}", RUN+="/bin/mount -o $env{mount_options} /dev/%k /media/%E{dir_name}"  
+ACTION=="add", RUN+="/bin/mkdir -p /media/pi/%E{dir_name}", RUN+="/bin/mount -o $env{mount_options} /dev/%k /media/pi/%E{dir_name}"  
 # Clean up after removal  
-ACTION=="remove", ENV{dir_name}!="", RUN+="/bin/umount -l /media/%E{dir_name}", RUN+="/bin/rmdir /media/%E{dir_name}"  
+ACTION=="remove", ENV{dir_name}!="", RUN+="/bin/umount -l /media/pi/%E{dir_name}", RUN+="/bin/rmdir /media/pi/%E{dir_name}"  
 # Exit  
 LABEL="media_by_label_auto_mount_end"
