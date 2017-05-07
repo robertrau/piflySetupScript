@@ -40,7 +40,28 @@ cat /var/log/piflyinstalllog.txt
     SoX - Audio Resample
     matplotlib - Plot Library for Python
       
-    
+
+## Acknowledgments
+The PiFly hardware and software would not have been possible without the kind efforts of the following.
+
+    • My family for putting up with me spening a pile of money on the PiFly hardware and tons of time over the last year making it real.
+    • My oldest son, without his efforts and patients I would still be writing the worst code ever and for his work on the PiFly library.
+    • The Raspberry Pi organization for taking on a huge effort and providing the world with a succesful learning vehicle.
+    • Imperial College Robotics Society for their vision to turn a digital computer into an analog RF modulator.
+    • fotografAle for converting pifm into a modulator sutable for amateur radio use.
+    • Lady Ada, Phil Burgess, and the Adafruit team for the software to do pushbutton shutdown and the Audio PWM tutorial.
+    • www.axllent.org for showing me how to make any USB FLASH drive auto mount writable.
+    • KM4EFP for pkt2wave to support packet radio
+    • Brian Ho for gpio_alt
+    • The University of Edinburgh, Centre for Speech Technology Research, for festival speech software
+    • The SoX team
+    • The matplotlib team
+    • The scrot team
+    • The i2c-tools team
+    • The whole open source hardware and software community.
+God bless them all.
+
+
 
 ## PiFly Hardware Features
 **• Power:** Designed to run on 3.2 to 12 volts, it is intended to run on one to three LiPo cells, but any power supply will do. A single power supply powers the Raspberry Pi, the HAT board, and its USB device from a 5 volt 2 amp buck-boost switching power supply. (The four high current outputs require at least 4.5 volts; i.e. two or three LiPo cells)
@@ -51,7 +72,7 @@ cat /var/log/piflyinstalllog.txt
 
 **• Servos:** Can control up to eight servos. (Standard 6 volt servos will require 2 LiPo cells, higher voltage tolerant servos can use 2 or 3 LiPo cells)
 
-**• High Current Outputs:** Intended for Rocket upper stage igniters and parachutes, these high current, high side drivers have diagnostics and a redundant enable system to prevent false assertions. Connections use press-to-release terminal blocks.
+**• High Current Outputs:** Intended for Rocket upper stage igniters and parachutes, these high current, high side drivers have borh voltage and current diagnostics. There is a redundant enable system to prevent false assertions. Connections use press-to-release terminal blocks so there is no possibility of forgetting to tighten a screw enough.
 
 **• Support for headless operation:**  There is a shutdown button and a shutdown acknowledgment LED for safe headless shutdown. There is also a low battery comparator that can assert the shutdown request.
 

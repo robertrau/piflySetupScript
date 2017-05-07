@@ -146,19 +146,25 @@
 #      By: Robert S. Rau & Rob F. Rau II
 # Changes: Added SoX to install so text2wave could work with smaller sample rates and then we could resample up to 48000 for pifm to produce a .ft file for rpitx, added gpio_alt and used it to tie PWM1 to GPIO13. some sudos removed
 #
+# Updated: 4/30/2017
+#    Rev.: 1.28
+#      By: Robert S. Rau & Rob F. Rau II
+# Changes: Clean up log file entries, put festival install back to the audio section, real issue was text2wave sample rate.
 #
-PIFLYSETUPVERSION=1.27
+#
+PIFLYSETUPVERSION=1.28
 #
 # Things to think about
 # 1) Should we set up an email account "PiFlyUser" to make it easier for users to share or report problems?
 # 2) Should we set up a blog for sharing?
 # 3) Should this script ask for a call sign during setup, install differently if none provided?
 # 4) Should the shutdown button enable be delayed to the very end of the script?
-# 5) Should the end of the script remind the user to set time zone, country, and so on?
+# 5) Should the end of the script remind the user to set time zone, country, and so on? -- Done
 # 6) Cleanup, remove source and unnecessary files?
 # 7) Need to abort on failure
 # 8) Need to check that there is enough space to do the whole install.
 # 9) How to get pifm and nbfm to work on any NOOBS from 1.9.2 on?, They work on NOOBS 1.50, 1.70, 1.80, 1.90. rpitx works on 2.3.0
+# 10) text2wave can't make a very long file with -F 48000 (needed for rpitx) for some reason, we now must use -F 6000 and SoX to change
 #
 #
 #Time setup
@@ -171,32 +177,32 @@ mydirectory=$(pwd)     #  remember what directory I started in
 # 0) Check that we are running with root permissions
 if [[ $EUID > 0 ]]; then
 	echo "Please run using: sudo ./piflysetup.sh"
-    echo "PiFly Setup:Aborted, not in sudo." >> $logFilePath
+    echo "PiFly Setup: Aborted, not in sudo." >> $logFilePath
     exit
 fi
 echo "" >> $logFilePath
-echo "PiFly Setup Script version" $PIFLYSETUPVERSION >> $logFilePath
-echo "PiFly Setup:Start Run in sudo" >> $logFilePath
+echo "PiFly Setup: Script version" $PIFLYSETUPVERSION >> $logFilePath
+echo "PiFly Setup: Start Run in sudo" >> $logFilePath
 date >> $logFilePath
 ping -c 1 8.8.8.8
 if [[ $? > 0 ]]; then
     echo ""
     echo "No Network connection. Have you connected with your WiFi network or plugged in your network cable before running this?"
-    echo "PiFly Setup:Aborted, no network connection" >> $logFilePath
+    echo "PiFly Setup: Aborted, no network connection, ping 8.8.8.8 failed" >> $logFilePath
     exit
 fi
-echo "PiFly Setup:Have network connection" >> $logFilePath
+echo "PiFly Setup: Have network connection" >> $logFilePath
 echo "" >> $logFilePath
-echo "PiFly Setup:uname -a:" >> $logFilePath
+echo "PiFly Setup: uname -a:" >> $logFilePath
 uname -a >> $logFilePath
 echo "" >> $logFilePath
-echo "PiFly Setup:cat /proc/cpuinfo:" >> $logFilePath
+echo "PiFly Setup: cat /proc/cpuinfo:" >> $logFilePath
 cat /proc/cpuinfo >> $logFilePath
 echo "" >> $logFilePath
-echo "PiFly Setup:lsusb -t:" >> $logFilePath
+echo "PiFly Setup: lsusb -t:" >> $logFilePath
 lsusb -t  >> $logFilePath
 echo "" >> $logFilePath
-echo "PiFly Setup:lsmod:" >> $logFilePath
+echo "PiFly Setup: lsmod:" >> $logFilePath
 lsmod >> $logFilePath
 #
 #
@@ -208,46 +214,25 @@ lsmod >> $logFilePath
 #
 #
 ########## 1) Setup directory structure
+echo "PiFly setup: Starting directory setup and git update" >> $logFilePath
 echo "" >> $logFilePath
 echo "PiFly setup: Starting directory setup"
 cd /home/pi
 if [ -d pifly ]; then
-echo "PiFly Setup:pifly directory already exists" $? >> $logFilePath
+echo "PiFly Setup: pifly directory already exists: result" $? >> $logFilePath
 else
 mkdir pifly
-echo "PiFly Setup:pifly directory created" $? >> $logFilePath
+echo "PiFly Setup: pifly directory created: result" $? >> $logFilePath
 fi
 chown pi:pi pifly
-echo "PiFly Setup:mkdir pifly:result" $? >> $logFilePath
+echo "PiFly Setup: mkdir pifly: result" $? >> $logFilePath
 # switch to install directory
 cd /home/pi/pifly
 #
 #
 #
 sudo apt-get update
-echo "PiFly Setup:sudo apt-get update" $? >> $logFilePath
-#
-#
-#
-#
-# Must install Festival before others or it text2wave fails to convert whole string
-# Text to speech and text to wave support    see:https://learn.adafruit.com/speech-synthesis-on-the-raspberry-pi/installing-the-festival-speech-package
-echo "PiFly setup: Startingfestivalsetup"
-sudo apt-get -y install festival
-echo "PiFly Setup:apt-get festival result" $? >> $logFilePath
-#
-# Slow down rate of speech a bit
-sudo sed -i.bak -e "s/(Parameter.set 'Duration_Stretch 1.1)/(Parameter.set 'Duration_Stretch 1.6)/"  /usr/share/festival/voices/english/kal_diphone/festvox/kal_diphone.scm
-echo "PiFly Setup:Slow down of speech" $? >> $logFilePath
-#
-#
-#
-#
-# SoX resample support
-echo "PiFly setup: StartingSoXsetup"
-sudo apt-get -y install SoX
-echo "PiFly Setup:apt-get SoX result" $? >> $logFilePath
-#
+echo "PiFly Setup: sudo apt-get update: result" $? >> $logFilePath
 #
 #
 #
@@ -260,7 +245,7 @@ echo "PiFly Setup:apt-get SoX result" $? >> $logFilePath
 echo "PiFly setup: StartingRaspberry Pi configuration"
 #
 sudo apt-get install git
-echo "PiFly Setup:apt-get install git" $? >> $logFilePath
+echo "PiFly Setup: apt-get install git: result" $? >> $logFilePath
 #
 #
 #
@@ -269,12 +254,11 @@ echo "PiFly Setup:apt-get install git" $? >> $logFilePath
 # Make USB drive writeable
 # Add rule for mounting USB flash drives as writable
 # https://www.axllent.org/docs/view/auto-mounting-usb-storage/
-echo "PiFly Setup:Setting up USB drives to be writable"
-echo "PiFly Setup:Setting up USB drives to be writable" $? >> $logFilePath
+echo "PiFly Setup: Setting up USB drives to be writable"
 cp $mydirectory/11-media-by-label-auto-mount.rules /etc/udev/rules.d/
-echo "PiFly Setup:USB drive setup:copy" $? >> $logFilePath
+echo "PiFly Setup: USB drive setup: cp $mydirectory/11-media-by-label-auto-mount.rules /etc/udev/rules.d/: result" $? >> $logFilePath
 udevadm control --reload-rules
-echo "PiFly Setup:USB drive setup:udevadm" $? >> $logFilePath
+echo "PiFly Setup: USB drive setup: udevadm control --reload-rules: result" $? >> $logFilePath
 #
 #
 #
@@ -293,22 +277,23 @@ echo "PiFly Setup:USB drive setup:udevadm" $? >> $logFilePath
 # shutdown support
 # http://www.recantha.co.uk/blog/?p=13999
 #
+echo "PiFly setup: Starting push button halt setup" >> $logFilePath
 cd /home/pi/pifly
 if [ -d Adafruit-GPIO-Halt ]; then
   cd Adafruit-GPIO-Halt
   git pull
-  echo "PiFly Setup:git pull of Adafruit_GPIO_Halt" $? >> $logFilePath
+  echo "PiFly Setup: git pull of Adafruit_GPIO_Halt: result" $? >> $logFilePath
 else
   git clone https://github.com/adafruit/Adafruit-GPIO-Halt
-  echo "PiFly Setup:git clone of Adafruit_GPIO_Halt" $? >> $logFilePath
+  echo "PiFly Setup: git clone of Adafruit_GPIO_Halt: result" $? >> $logFilePath
   cd Adafruit-GPIO-Halt
 fi
 make
-echo "PiFly Setup:make of Adafruit_GPIO_Halt" $? >> $logFilePath
+echo "PiFly Setup: make of Adafruit_GPIO_Halt: result" $? >> $logFilePath
 sudo make install
-echo "PiFly Setup:make install of Adafruit_GPIO_Halt" $? >> $logFilePath
+echo "PiFly Setup: make install of Adafruit_GPIO_Halt: result" $? >> $logFilePath
 sudo /usr/local/bin/gpio-halt 26 &
-echo "PiFly Setup:gpio-halt 26 &" $? >> $logFilePath
+echo "PiFly Setup: gpio-halt 26 &: result" $? >> $logFilePath
 cd /home/pi/pifly
 chown -R pi:pi Adafruit-GPIO-Halt
 #
@@ -318,9 +303,10 @@ chown -R pi:pi Adafruit-GPIO-Halt
 #
 #
 # Edit cmdline.txt st serial port is available for GPS
+echo "PiFly setup: Starting cmdline.txt editing" >> $logFilePath
 sudo sed -i.bak -e 's/console=ttyAMA0\,115200 //' -e 's/kgdboc=ttyAMA0,115200 //' -e 's/console=serial0,115200 //' /boot/cmdline.txt
-echo "PiFly Setup:cmdline.txt update" $? >> $logFilePath
-echo "PiFly Setup:cmdline.txt is now:" >> $logFilePath
+echo "PiFly Setup: cmdline.txt update: result" $? >> $logFilePath
+echo "PiFly Setup: cmdline.txt is now:" >> $logFilePath
 cat /boot/cmdline.txt >> $logFilePath
 #
 #
@@ -353,38 +339,41 @@ cat /boot/cmdline.txt >> $logFilePath
 ########## 3) install RF transmitters and modulators
 #
 #  nbfm - narrow band FM - 144MHz transmitter, uses GPIO4
+echo "PiFly setup: Starting nbfm setup" >> $logFilePath
 cd /home/pi/pifly
 if [ -d NBFM ]; then
   cd NBFM
   git pull
-  echo "PiFly Setup:git pull of nbfm result" $? >> $logFilePath
+  echo "PiFly Setup: git pull of nbfm: result" $? >> $logFilePath
 else
   git clone https://github.com/fotografAle/NBFM
-  echo "PiFly Setup:git clone of nbfm result" $? >> $logFilePath
+  echo "PiFly Setup: git clone of nbfm: result" $? >> $logFilePath
   cd ./NBFM
 fi
 chmod +x TX-CPUTemp.sh
-echo "PiFly Setup:Starting gcc -O3 -lm -std=gnu99 -o nbfm nbfm.c &> $logFilePath" $? >> $logFilePath
+echo "PiFly Setup: chmod +x TX-CPUTemp.sh: result" $? >> $logFilePath
+echo "PiFly Setup: Starting gcc -O3 -lm -std=gnu99 -o nbfm nbfm.c &> $logFilePath" >> $logFilePath
 gcc -O3 -lm -std=gnu99 -o nbfm nbfm.c &>> $logFilePath                 # changed from -std=c99 to -std=gnu99, and -o3 to -O3
-echo "PiFly Setup:nbfm:gcc nbfm" $? >> $logFilePath
+echo "PiFly Setup: gcc -O3 -lm -std=gnu99 -o nbfm nbfm.c &>> $logFilePath: result" $? >> $logFilePath
 cd /home/pi/pifly
 chown -R pi:pi NBFM
+echo "PiFly Setup: chown -R pi:pi NBFM: result" $? >> $logFilePath
 #
 #
 #  rpitx - able to TX on 440MHz band, uses GPIO18 or GPIO4
-echo "PiFly setup: Starting rpitx setup"
+echo "PiFly setup: Starting rpitx setup" >> $logFilePath
 cd /home/pi/pifly
 if [ -d rpitx ]; then
   cd rpitx
   git pull
-  echo "PiFly Setup:git pull of rpitx result" $? >> $logFilePath
+  echo "PiFly Setup:git pull of rpitx: result" $? >> $logFilePath
 else
   git clone https://github.com/F5OEO/rpitx
-  echo "PiFly Setup:git clone of rpitx result" $? >> $logFilePath
+  echo "PiFly Setup:git clone of rpitx: result" $? >> $logFilePath
   cd ./rpitx
 fi
 sudo ./install.sh
-echo "PiFly Setup:rpitx install result" $? >> $logFilePath
+echo "PiFly Setup:rpitx install: result" $? >> $logFilePath
 #
 # Fetch demo scripts
 cp /home/pi/piflysetupscript/text2RFrpitx.sh .
@@ -396,21 +385,21 @@ chown -R pi:pi rpitx
 #
 #
 #  pifm - able to TX on 144MHz band, uses GPIO4
-echo "PiFly setup: Starting pifm setup"
+echo "PiFly setup: Starting pifm setup" >> $logFilePath
 cd /home/pi/pifly
 if [ -d pifm ]; then
   cd pifm
   git pull
-  echo "PiFly Setup:git pull of pifm result" $? >> $logFilePath
+  echo "PiFly Setup: git pull of pifm: result" $? >> $logFilePath
 else
   git clone https://github.com/rm-hull/pifm
-  echo "PiFly Setup:git clone of pifm result" $? >> $logFilePath
+  echo "PiFly Setup: git clone of pifm: result" $? >> $logFilePath
   cd ./pifm
 fi
 chown pi:pi pifm.cpp
-echo "PiFly Setup:Starting g++ -O3 -o pifm pifm.cpp" $? >> $logFilePath
+echo "PiFly Setup: chown pi:pi pifm.cpp: result" $? >> $logFilePath
 g++ -O3 -o pifm pifm.cpp &>> $logFilePath
-echo "PiFly Setup:pifm:g++ pifm" $? >> $logFilePath
+echo "PiFly Setup: pifm:g++ pifm: result" $? >> $logFilePath
 cd /home/pi/pifly
 chown -R pi:pi pifm
 #
@@ -418,7 +407,7 @@ chown -R pi:pi pifm
 #  Packet radio modulator. Text to modem .WAV file
 cd /home/pi/pifly
 wget https://raw.githubusercontent.com/km4efp/pifox/master/pifox/pkt2wave
-echo "PiFly Setup:wget pkt2wave result" $? >> $logFilePath
+echo "PiFly Setup: wget pkt2wave: result" $? >> $logFilePath
 chmod +x pkt2wave
 chown pi:pi pkt2wave
 #
@@ -444,30 +433,52 @@ chown pi:pi pkt2wave
 #
 # set up audio output
 #  https://learn.adafruit.com/adding-basic-audio-ouput-to-raspberry-pi-zero/pi-zero-pwm-audio
+echo "PiFly setup: Starting raspi-gpio setup" >> $logFilePath
 apt-get install raspi-gpio
-echo "PiFly Setup:apt-get install raspi-gpio result" $? >> $logFilePath
+echo "PiFly Setup: apt-get install raspi-gpio: result" $? >> $logFilePath
 #
 # now get gpio_alt.c
 cd /home/pi/pifly
 if [ -d LEDMatrix ]; then
   cd LEDMatrix
   git pull
-  echo "PiFly Setup:git pull of LEDMatrix result" $? >> $logFilePath
+  echo "PiFly Setup: git pull of LEDMatrix: result" $? >> $logFilePath
 else
   git clone https://github.com/KawaniwaHikaru/LEDMatrix
-  echo "PiFly Setup:git clone of LEDMatrix result" $? >> $logFilePath
+  echo "PiFly Setup: git clone of LEDMatrix: result" $? >> $logFilePath
   cd ./LEDMatrix
 fi
 cd src
 gcc -o gpio_alt gpio_alt.c
-echo "PiFly Setup:gcc of gpio_alt.c result" $? >> $logFilePath
+echo "PiFly Setup: gcc of gpio_alt.c: result" $? >> $logFilePath
 chown root:root gpio_alt
 chmod u+s gpio_alt
 mv gpio_alt /usr/local/bin/
-echo "PiFly Setup:move of gpio_alt.c to /usr/local/bin/ result" $? >> $logFilePath
+echo "PiFly Setup: move of gpio_alt.c to /usr/local/bin/: result" $? >> $logFilePath
 gpio_alt -p 13 -f 0
-echo "PiFly Setup:gpio_alt -p 13 -f 0 result" $? >> $logFilePath
+echo "PiFly Setup: gpio_alt -p 13 -f 0: result" $? >> $logFilePath
 #
+#
+#
+#
+#
+#
+# Text to speech and text to wave support    see:https://learn.adafruit.com/speech-synthesis-on-the-raspberry-pi/installing-the-festival-speech-package
+echo "PiFly setup: Startingfestivalsetup"
+sudo apt-get -y install festival
+echo "PiFly Setup: apt-get festival: result" $? >> $logFilePath
+#
+# Slow down rate of speech a bit
+sudo sed -i.bak -e "s/(Parameter.set 'Duration_Stretch 1.1)/(Parameter.set 'Duration_Stretch 1.6)/"  /usr/share/festival/voices/english/kal_diphone/festvox/kal_diphone.scm
+echo "PiFly Setup: sed, Slow down of speech: result" $? >> $logFilePath
+#
+#
+#
+#
+# SoX resample support
+echo "PiFly setup: StartingSoXsetup"
+sudo apt-get -y install SoX
+echo "PiFly Setup: apt-get SoX: result" $? >> $logFilePath
 #
 #
 #
@@ -478,9 +489,10 @@ echo "PiFly Setup:gpio_alt -p 13 -f 0 result" $? >> $logFilePath
 ########## 5) Video downlink support
 #
 # Python matplotlib
+echo "PiFly setup: Starting python-matplotlib setup" >> $logFilePath
 apt-get -y install python-matplotlib
 #
-echo "PiFly Setup:apt-getpython-matplotlibresult" $? >> $logFilePath
+echo "PiFly Setup: apt-get python-matplotlib: result" $? >> $logFilePath
 #
 #
 #
@@ -504,15 +516,17 @@ echo "PiFly Setup:apt-getpython-matplotlibresult" $? >> $logFilePath
 ########## 7) Developer tools
 #
 # Screen capture tool
+echo "PiFly setup: Starting scrot setup" >> $logFilePath
 sudo apt-get -y install scrot
-echo "PiFly Setup:apt-getapt-get scrotresult" $? >> $logFilePath
+echo "PiFly Setup: apt-getapt-get scrot: result" $? >> $logFilePath
 #
 #
 #
 #
 # Install I2C tools
+echo "PiFly setup: Starting i2c-tools setup" >> $logFilePath
 sudo apt-get install i2c-tools
-echo "PiFly Setup:apt-get install i2c-tools" $? >> $logFilePath
+echo "PiFly Setup: apt-get install i2c-tools: result" $? >> $logFilePath
 #
 echo ""
 echo "PiFly Setup Script version" $PIFLYSETUPVERSION
