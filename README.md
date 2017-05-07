@@ -99,12 +99,12 @@ The high side drivers on J6 are powered directly from the power input on P1. Thi
 The servos that can connect to P2 and P3 can run directly off the power input or can run two diode drops below the power input. This is selected by W4. For all but the smallest servos, it is recommended that W4 be a soldered wire short, not a removable jumper due to current requirements. LiPo battery voltages and servo voltage options are listed below:
 
     LiPo cell count		W4 position		Servo voltage
-    1 (3.0V - 3.7V)		1-2				1.8V – 2.7V
-    1 (3.0V - 3.7V)		2-3				3.0V - 3.7V
-    2 (6.0V – 7.4V)		1-2				4.8V – 6.4V
-    2 (6.0V – 7.4V)		2-3				6.0V – 7.4V
-    3 (9.0V – 11.1V)	1-2				7.8V – 10.1V
-    3 (9.0V – 11.1V)	2-3				9.0V – 11.1V
+    1 (3.0V - 3.7V)		1-2			1.8V – 2.7V
+    1 (3.0V - 3.7V)		2-3			3.0V - 3.7V
+    2 (6.0V – 7.4V)		1-2			4.8V – 6.4V
+    2 (6.0V – 7.4V)		2-3			6.0V – 7.4V
+    3 (9.0V – 11.1V)	1-2			7.8V – 10.1V
+    3 (9.0V – 11.1V)	2-3			9.0V – 11.1V
 
 Servos could be powered independently by wiring an external power source to pin 2 on W4.
 
@@ -129,13 +129,13 @@ J8 is a reset pin that lines up with the reset pin on a Raspberry Pi Zero. This 
 The PiFly board has two RF outputs. Each one has its own filter for a specific RF band. The default build is for the 144MHz HAM band and the 434MHz HAM band. 144MHz transmission can be supported by pifm, nbfm, and rpitx. 440MHz transmission may someday be supported by rpitx on the Raspberry Pi Zero, but currently does not work. Rpitx works well on the Raspberry Pi 3. There has been no testing on other ‘compatible’ computers. Supports RF carrier from either GPIO4 or GPIO18 (also the I2S clock) selected with GPIO27. The on-board microphone can not be used with GPIO18 selected as the RF output. Below is a table for the multiplexor and the band.
 
 		GPIO27			Selected Timer Output		Supporting Software
-		Low			GPIO18 (shared with I2S)		rpitx
-		High			GPIO4					pifm, nbfm, rpitx
+		Low			GPIO18 (shared with I2S)	rpitx
+		High			GPIO4				pifm, nbfm, rpitx
 
 
-		Band			TX Output Connector			Supporting Software
-		144				J3					pifm, nbfm
-		433				J2					rpitx
+		Band			TX Output Connector		Supporting Software
+		144			J3				pifm, nbfm
+		433			J2				rpitx
 
 
 
@@ -216,7 +216,7 @@ The board may be assembled without the SkyTraq GPS and have the serial port avai
 #### Analog to Digital Converter
 The PiFly has a 16 channel A/D converter. The design is compatible with 8, 10, and 12 bit versions of the A/D converter. The default build is with the 10 bit version. The A/D driver should always read the converter so the data is left justified, putting DO-11 (bit position from the data sheet), the MSB, in the most significant bit of the processors register. The math will assume the binary point is just to the left of the most significant bit. This will make all data returned from the A/D converter a fraction from 0.0000 to, but not including, 1.0000. This will be true for any of the available resolutions. In the table below, <A/D> is always this fraction from 0.0000 to 1.0000.
 
-	Channel	Measurement			Conversion to Engineering Units
+	Channel		Measurement			Conversion to Engineering Units
 	0		AnalogCH1, J7 pin 3		Application dependent
 	1		AnalogCH2, J7 pin 3		Application dependent
 	2		AnalogCH3, J7 pin 3		Application dependent
