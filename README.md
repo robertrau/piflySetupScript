@@ -55,7 +55,7 @@ cat /var/log/piflyinstalllog.txt
 
 **• Support for headless operation:**  There is a shutdown button and a shutdown acknowledgment LED for safe headless shutdown. There is also a low battery comparator that can assert the shutdown request.
 
-**• Small size:** The PiFly has the same width as Raspberry Pi Zero, but it is longer. Dimensions: 29.25mm by 150mm. It is intended to fit a high power rocket 38mm tube coupler, strap on the belly of a quad-copter, or in an RC airplane. Also small enough to be a smart handi-talkie with the addition of a USB software defined receiver. See PDF download below for application schematics.
+**• Small size:** The PiFly has the same width as Raspberry Pi Zero, but it is longer. Dimensions: 29.25mm by 150mm. It is intended to fit a high power rocket 38mm tube coupler, strap on the belly of a quad-copter, or in an RC airplane. Also small enough to be a smart handi-talkie with the addition of a USB software defined receiver.
 
 **• USB redirected:** Cannot use the USB port in the 32mm width. The USB test points on a Raspberry Pi Zero can be soldered to test points on the HAT board for the USB type A connector and still fit in a 38mm tube coupler.
 
@@ -63,7 +63,7 @@ cat /var/log/piflyinstalllog.txt
 
 **• I/Os:** Most have ESD protection.
 
-**• A/D support:** Options for 8, 10, and 12 bit footprint compatible A/D converters. The default build uses the 10 bit TI ADS7957SDBTR A/D converter with 16 channels; some for internal measurement and diagnostics and some external channels. The external A/D connector is a 0.050” pitch connector. Two external channels can be set up for thermistors. Uses SPI interface.
+**• A/D support:** Supports either 8, 10, or 12 bit A/D converters. The default build uses the 10 bit TI ADS7957SDBTR A/D converter with 16 channels; some for internal measurement and diagnostics and some external channels. The external A/D connector is a 0.050” pitch connector. Two external channels can be set up for thermistors. Uses SPI interface.
 
 **• Keypad support:** A connector for either a standard six-key keypad or a standard 12-key keypad connected through a resistor array to a A/D input. With an external resistor array 26 keys are possible.
 
@@ -83,16 +83,16 @@ cat /var/log/piflyinstalllog.txt
 
 **• Time of Day Clock:** Maxim DS3231S using the GPS Super Cap/Battery Backup.
 
-**• Maxim 1-Wire bus controller.**
+**• Maxim 1-Wire bus controller.** Full support for 5 volt higher current devices.
 
 **• Quad tachometer Input:** compatible with Spektrum SPM1452 sensors. Uses an Analog Devices ADT7470.
 
 
 
 #### Power
-The PiFly board runs from a 5.0 volt to 12.0 volt maximum input on connector P1. The breakdown voltage of the input protection TVS is 12.2 volts and this voltage should never be exceeded. The input is protected from ESD to 15kV non-contact. If the high side drivers on J6 are not used, the input voltage can go as low as 3.0 volts. The power input connector is a Deans Ultra Plug; a small, lightweight, high current connector that is widely available. There is no battery charger on the PiFly.
+The PiFly board runs from a 4.5 volt to 12.0 volt maximum input on connector P1. The breakdown voltage of the input protection TVS is 12.2 volts and this voltage should never be exceeded. The input is protected from ESD to 15kV. If the high side drivers on J6 are not used, the input voltage can go as low as 3.2 volts. The power input connector is a Deans Ultra Plug; a small, lightweight, high current connector that is widely available. There is no battery charger on the PiFly.
 
-The input power is converted to 5.1 volts through a buck-boost DC-DC converter. It is then further regulated to 3.3 volts with a linear regulator. The 5.1 powers the A/D converter analog part and the 3.3 volt powers most of the sensors.
+The input power is converted to 5.1 volts through a buck-boost DC-DC converter. It is then further regulated to 3.3 volts with a linear regulator. The 5.1 powers the A/D converter analog portion, and the 3.3 volt powers most of the sensors.
 
 The high side drivers on J6 are powered directly from the power input on P1. This is required since the high side driver can source as much as 42 amps. Care must be taken for high current applications if you use a LiPo battery. LiPo batteries have a built-in over-current protection. If your application exceeds this value, your battery will automatically disconnect and the PiFly and Raspberry Pi computer will lose power.
 
