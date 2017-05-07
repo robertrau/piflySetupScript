@@ -42,11 +42,11 @@ cat /var/log/piflyinstalllog.txt
       
 **File Description**
 
-    piflysetup.sh		The bash setup script
-    Demo144-39MHz.sh	This script takes a text message and converts it to a RF .ft speech file, turns on the RF amplifier and transmits the speech file, then turns off the RF amplifier.
-    txoff.sh		Turns off the RF amplifier.
-    tx18.sh	Selects GPIO18 as the RF carrier and turns on the RF amplifier.
-    tx4.sh	Selects GPIO4 as the RF carrier and turns on the RF amplifier.
+    piflysetup.sh			The bash setup script
+    Demo144-39MHz.sh		This script takes a text message and converts it to a RF .ft speech file, turns on the RF amplifier and transmits the speech file, then turns off the RF amplifier.
+    txoff.sh			Turns off the RF amplifier.
+    tx18.sh			Selects GPIO18 as the RF carrier and turns on the RF amplifier.
+    tx4.sh			Selects GPIO4 as the RF carrier and turns on the RF amplifier.
     11-media-by-label-auto-mount.rules	Rules for USB FLASH drive to be writable
 
 
