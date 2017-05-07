@@ -47,7 +47,7 @@ cat /var/log/piflyinstalllog.txt
 
 **• Raspberry Pi compatible:** The PiFly is intended to connect to the Raspberry Pi Zero so that components of each board face away from the middle. A 40 pin socket could be soldered to the top of the board for use on the Raspberry Pi 3, or any 40 pin Raspberry Pi.
 
-**• RF Transmitter Amplifier and Filter:** The board has a dual RF filter and 200mW amplifier. It supports an RF carrier from either GPIO14 or GPIO18. One filter is for the 144MHz HAM band and the other filter is for the 440MHz HAM band. 144MHz transmission can be supported by pifm, nbfm, and rpitx. 440MHz transmission may someday be supported by rpitx, but currently rpitx doesn’t seem to work on the Raspberry Pi Zero.
+**• RF Transmitter Amplifier and Filter:** The board has a dual RF filter and 200mW amplifier. It supports an RF carrier from either GPIO14 or GPIO18. One filter is for the 144MHz HAM band and the other filter is for the 440MHz HAM band. 144MHz transmission can be supported by pifm, nbfm, and rpitx. 440MHz transmission is supported by rpitx.
 
 **• Servos:** Can control up to eight servos. (Standard 6 volt servos will require 2 LiPo cells, higher voltage tolerant servos can use 2 or 3 LiPo cells)
 
