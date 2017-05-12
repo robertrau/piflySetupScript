@@ -146,13 +146,23 @@
 #      By: Robert S. Rau & Rob F. Rau II
 # Changes: Added SoX to install so text2wave could work with smaller sample rates and then we could resample up to 48000 for pifm to produce a .ft file for rpitx, added gpio_alt and used it to tie PWM1 to GPIO13. some sudos removed
 #
-# Updated: 4/30/2017
+# Updated: 5/7/2017
 #    Rev.: 1.28
 #      By: Robert S. Rau & Rob F. Rau II
 # Changes: Clean up log file entries, put festival install back to the audio section, real issue was text2wave sample rate.
 #
+# Updated: 5/7/2017
+#    Rev.: 1.29
+#      By: Robert S. Rau & Rob F. Rau II
+# Changes: edits to .bashrc to uncomment alias', got rid of extra sudo commands
 #
-PIFLYSETUPVERSION=1.28
+# Updated: 5/9/2017
+#    Rev.: 1.30
+#      By: Robert S. Rau & Rob F. Rau II
+# Changes: Fixed bashrc edit. 
+#
+#
+PIFLYSETUPVERSION=1.30
 #
 # Things to think about
 # 1) Should we set up an email account "PiFlyUser" to make it easier for users to share or report problems?
@@ -231,8 +241,8 @@ cd /home/pi/pifly
 #
 #
 #
-sudo apt-get update
-echo "PiFly Setup: sudo apt-get update: result" $? >> $logFilePath
+apt-get update
+echo "PiFly Setup: apt-get update: result" $? >> $logFilePath
 #
 #
 #
@@ -244,7 +254,7 @@ echo "PiFly Setup: sudo apt-get update: result" $? >> $logFilePath
 # for SPI see (see DMA note at bottom):https://www.raspberrypi.org/documentation/hardware/raspberrypi/spi/README.md
 echo "PiFly setup: StartingRaspberry Pi configuration"
 #
-sudo apt-get install git
+apt-get install git
 echo "PiFly Setup: apt-get install git: result" $? >> $logFilePath
 #
 #
@@ -290,9 +300,9 @@ else
 fi
 make
 echo "PiFly Setup: make of Adafruit_GPIO_Halt: result" $? >> $logFilePath
-sudo make install
+make install
 echo "PiFly Setup: make install of Adafruit_GPIO_Halt: result" $? >> $logFilePath
-sudo /usr/local/bin/gpio-halt 26 &
+/usr/local/bin/gpio-halt 26 &
 echo "PiFly Setup: gpio-halt 26 &: result" $? >> $logFilePath
 cd /home/pi/pifly
 chown -R pi:pi Adafruit-GPIO-Halt
@@ -304,7 +314,7 @@ chown -R pi:pi Adafruit-GPIO-Halt
 #
 # Edit cmdline.txt st serial port is available for GPS
 echo "PiFly setup: Starting cmdline.txt editing" >> $logFilePath
-sudo sed -i.bak -e 's/console=ttyAMA0\,115200 //' -e 's/kgdboc=ttyAMA0,115200 //' -e 's/console=serial0,115200 //' /boot/cmdline.txt
+sed -i.bak -e 's/console=ttyAMA0\,115200 //' -e 's/kgdboc=ttyAMA0,115200 //' -e 's/console=serial0,115200 //' /boot/cmdline.txt
 echo "PiFly Setup: cmdline.txt update: result" $? >> $logFilePath
 echo "PiFly Setup: cmdline.txt is now:" >> $logFilePath
 cat /boot/cmdline.txt >> $logFilePath
@@ -372,7 +382,7 @@ else
   echo "PiFly Setup:git clone of rpitx: result" $? >> $logFilePath
   cd ./rpitx
 fi
-sudo ./install.sh
+./install.sh
 echo "PiFly Setup:rpitx install: result" $? >> $logFilePath
 #
 # Fetch demo scripts
@@ -465,11 +475,11 @@ echo "PiFly Setup: gpio_alt -p 13 -f 0: result" $? >> $logFilePath
 #
 # Text to speech and text to wave support    see:https://learn.adafruit.com/speech-synthesis-on-the-raspberry-pi/installing-the-festival-speech-package
 echo "PiFly setup: Startingfestivalsetup"
-sudo apt-get -y install festival
+apt-get -y install festival
 echo "PiFly Setup: apt-get festival: result" $? >> $logFilePath
 #
 # Slow down rate of speech a bit
-sudo sed -i.bak -e "s/(Parameter.set 'Duration_Stretch 1.1)/(Parameter.set 'Duration_Stretch 1.6)/"  /usr/share/festival/voices/english/kal_diphone/festvox/kal_diphone.scm
+sed -i.bak -e "s/(Parameter.set 'Duration_Stretch 1.1)/(Parameter.set 'Duration_Stretch 1.6)/"  /usr/share/festival/voices/english/kal_diphone/festvox/kal_diphone.scm
 echo "PiFly Setup: sed, Slow down of speech: result" $? >> $logFilePath
 #
 #
@@ -477,7 +487,7 @@ echo "PiFly Setup: sed, Slow down of speech: result" $? >> $logFilePath
 #
 # SoX resample support
 echo "PiFly setup: StartingSoXsetup"
-sudo apt-get -y install SoX
+apt-get -y install SoX
 echo "PiFly Setup: apt-get SoX: result" $? >> $logFilePath
 #
 #
@@ -517,7 +527,7 @@ echo "PiFly Setup: apt-get python-matplotlib: result" $? >> $logFilePath
 #
 # Screen capture tool
 echo "PiFly setup: Starting scrot setup" >> $logFilePath
-sudo apt-get -y install scrot
+apt-get -y install scrot
 echo "PiFly Setup: apt-getapt-get scrot: result" $? >> $logFilePath
 #
 #
@@ -525,8 +535,21 @@ echo "PiFly Setup: apt-getapt-get scrot: result" $? >> $logFilePath
 #
 # Install I2C tools
 echo "PiFly setup: Starting i2c-tools setup" >> $logFilePath
-sudo apt-get install i2c-tools
+apt-get install i2c-tools
 echo "PiFly Setup: apt-get install i2c-tools: result" $? >> $logFilePath
+#
+#
+#
+#
+echo "PiFly setup: Starting ~/.bashrc editing" >> $logFilePath
+sed -i.bak -e "s/#alias ll=\'ls -l\'/alias ll=\'ls -l\'/" /home/pi/.bashrc
+echo "PiFly Setup: sed -i.bak -e....: result" $? >> $logFilePath
+#
+#
+#
+#
+#
+#
 #
 echo ""
 echo "PiFly Setup Script version" $PIFLYSETUPVERSION
