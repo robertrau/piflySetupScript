@@ -161,8 +161,13 @@
 #      By: Robert S. Rau & Rob F. Rau II
 # Changes: Fixed bashrc edit. 
 #
+# Updated: 5/14/2017
+#    Rev.: 1.31
+#      By: Robert S. Rau & Rob F. Rau II
+# Changes: Re-fixed bashrc edit and added gpio-halt to rc.local
 #
-PIFLYSETUPVERSION=1.30
+#
+PIFLYSETUPVERSION=1.31
 #
 # Things to think about
 # 1) Should we set up an email account "PiFlyUser" to make it easier for users to share or report problems?
@@ -302,8 +307,16 @@ make
 echo "PiFly Setup: make of Adafruit_GPIO_Halt: result" $? >> $logFilePath
 make install
 echo "PiFly Setup: make install of Adafruit_GPIO_Halt: result" $? >> $logFilePath
-/usr/local/bin/gpio-halt 26 &
-echo "PiFly Setup: gpio-halt 26 &: result" $? >> $logFilePath
+#
+#    **** These next lines add gpio-halt... to end of rc.local before exit 0 line. They also combine the error codes to one number (just for fun)
+sed -i.bak -e "s/exit 0//" /etc/rc.local
+GPIOHALTRES=$(($?*10)
+echo "/usr/local/bin/gpio-halt 26 &" >> /etc/rc.local
+GPIOHALTRES=$(($?+$GPIOHALTRES))
+GPIOHALTRES=$((10*$GPIOHALTRES))
+echo "exit 0" >> /etc/rc.local
+GPIOHALTRES=$(($?+$GPIOHALTRES))
+echo "PiFly Setup: gpio-halt 26 &: result" $GPIOHALTRES >> $logFilePath
 cd /home/pi/pifly
 chown -R pi:pi Adafruit-GPIO-Halt
 #
@@ -314,6 +327,8 @@ chown -R pi:pi Adafruit-GPIO-Halt
 #
 # Edit cmdline.txt st serial port is available for GPS
 echo "PiFly setup: Starting cmdline.txt editing" >> $logFilePath
+echo "PiFly Setup: cmdline.txt was:" >> $logFilePath
+cat /boot/cmdline.txt >> $logFilePath
 sed -i.bak -e 's/console=ttyAMA0\,115200 //' -e 's/kgdboc=ttyAMA0,115200 //' -e 's/console=serial0,115200 //' /boot/cmdline.txt
 echo "PiFly Setup: cmdline.txt update: result" $? >> $logFilePath
 echo "PiFly Setup: cmdline.txt is now:" >> $logFilePath
@@ -540,10 +555,10 @@ echo "PiFly Setup: apt-get install i2c-tools: result" $? >> $logFilePath
 #
 #
 #
-#
-echo "PiFly setup: Starting ~/.bashrc editing" >> $logFilePath
-sed -i.bak -e "s/#alias ll=\'ls -l\'/alias ll=\'ls -l\'/" /home/pi/.bashrc
-echo "PiFly Setup: sed -i.bak -e....: result" $? >> $logFilePath
+# Setup a handy alias
+echo "PiFly setup: Starting ~/.bashrc appending for an alias" >> $logFilePath
+echo "alias ll='ls -alh'"  >> /home/pi/.bashrc
+echo "PiFly Setup: ~/.bashrc appending for an alias: result" $? >> $logFilePath
 #
 #
 #
