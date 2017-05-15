@@ -312,7 +312,7 @@ echo "PiFly Setup: make install of Adafruit_GPIO_Halt: result" $? >> $logFilePat
 echo "1  Halt progress"
 sed -i.bak -e "s/exit 0//" /etc/rc.local
 echo "2  Halt progress"
-GPIOHALTRES=$(($?*10)
+GPIOHALTRES=$(($?*10))
 echo "3  Halt progress" $GPIOHALTRES
 echo "/usr/local/bin/gpio-halt 26 &" >> /etc/rc.local
 echo "4  Halt progress"
