@@ -309,15 +309,25 @@ make install
 echo "PiFly Setup: make install of Adafruit_GPIO_Halt: result" $? >> $logFilePath
 #
 #    **** These next lines add gpio-halt... to end of rc.local before exit 0 line. They also combine the error codes to one number (just for fun)
+echo "1  Halt progress"
 sed -i.bak -e "s/exit 0//" /etc/rc.local
+echo "2  Halt progress"
 GPIOHALTRES=$(($?*10)
+echo "3  Halt progress" $GPIOHALTRES
 echo "/usr/local/bin/gpio-halt 26 &" >> /etc/rc.local
+echo "4  Halt progress"
 GPIOHALTRES=$(($?+$GPIOHALTRES))
+echo "5  Halt progress" $GPIOHALTRES
 GPIOHALTRES=$((10*$GPIOHALTRES))
+echo "6  Halt progress" $GPIOHALTRES
 echo "exit 0" >> /etc/rc.local
+echo "7  Halt progress"
 GPIOHALTRES=$(($?+$GPIOHALTRES))
+echo "8  Halt progress" $GPIOHALTRES
 echo "PiFly Setup: gpio-halt 26 &: result" $GPIOHALTRES >> $logFilePath
+echo "9  Halt progress"
 cd /home/pi/pifly
+echo "10  Halt progress"
 chown -R pi:pi Adafruit-GPIO-Halt
 #
 #
