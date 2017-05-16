@@ -166,8 +166,13 @@
 #      By: Robert S. Rau & Rob F. Rau II
 # Changes: Re-fixed bashrc edit and added gpio-halt to rc.local
 #
+# Updated: 5/15/2017
+#    Rev.: 1.32
+#      By: Robert S. Rau & Rob F. Rau II
+# Changes: Post install summary updated.
 #
-PIFLYSETUPVERSION=1.31
+#
+PIFLYSETUPVERSION=1.32
 #
 # Things to think about
 # 1) Should we set up an email account "PiFlyUser" to make it easier for users to share or report problems?
@@ -292,6 +297,8 @@ echo "PiFly Setup: USB drive setup: udevadm control --reload-rules: result" $? >
 # shutdown support
 # http://www.recantha.co.uk/blog/?p=13999
 #
+# HALTGPIOBIT selects the GPIO port (BCM number, not pin number)
+HALTGPIOBIT=26
 echo "PiFly setup: Starting push button halt setup" >> $logFilePath
 cd /home/pi/pifly
 if [ -d Adafruit-GPIO-Halt ]; then
@@ -311,12 +318,12 @@ echo "PiFly Setup: make install of Adafruit_GPIO_Halt: result" $? >> $logFilePat
 #    **** These next lines add gpio-halt... to end of rc.local before exit 0 line. They also combine the error codes to one number (just for fun)
 sed -i.bak -e "s/exit 0//" /etc/rc.local
 GPIOHALTRES=$(($?*10))
-echo "/usr/local/bin/gpio-halt 26 &" >> /etc/rc.local
+echo "/usr/local/bin/gpio-halt" $HALTGPIOBIT "&" >> /etc/rc.local
 GPIOHALTRES=$(($?+$GPIOHALTRES))
 GPIOHALTRES=$((10*$GPIOHALTRES))
 echo "exit 0" >> /etc/rc.local
 GPIOHALTRES=$(($?+$GPIOHALTRES))
-echo "PiFly Setup: gpio-halt 26 &: result" $GPIOHALTRES >> $logFilePath
+echo "PiFly Setup: gpio-halt" $HALTGPIOBIT "&: result" $GPIOHALTRES >> $logFilePath
 cd /home/pi/pifly
 chown -R pi:pi Adafruit-GPIO-Halt
 #
@@ -567,7 +574,11 @@ echo "PiFly Setup: ~/.bashrc appending for an alias: result" $? >> $logFilePath
 #
 #
 echo ""
+echo ""
 echo "PiFly Setup Script version" $PIFLYSETUPVERSION
-echo "USB flash drives are read-write. The shutdown button issues the shutdown command. You must re-boot for the new cmdline.txt to apply."
-echo "Remember to set country and time zone"
+echo "Most software is installed under ~/pifly. These files were changed: /boot/cmdline.txt, /etc/rc.local, and /home/pi/.bashrc"
+echo "Installed: pifly, nbfm, rpitx, i2c-tools, scrot, python-matplotlib, SoX, and festival"
+echo "Hardware shutdown can be done by grounding GPIO" $HALTGPIOBIT "using switch SW1"
+echo "USB flash drives will be read-write after re-boot. PWM audio is available on GPIO13 and amplified on connector P4."
+echo "You must re-boot for all the changes to take effect. Remember to set country and time zone"
 # Should load some libpifly examples
