@@ -28,7 +28,7 @@ cat /var/log/piflyinstalllog.txt
 **Installed Software**
 
     Inserted USB FLASH Drives are now writable
-    Pushbutton Shutdown on GPIO26 (pin 37)
+    Pushbutton Shutdown on GPIO26 (pin 37) for push button SW1 on the PiFly board
     Release of serial ports for SSH and Bluetooth, high speed serial needed for 50Hz update GPS
     nbfm - Narrow Band FM Transmitter, doesn't work on NOOBS 1.92 and later
     rpitx - Multimode FM Transmitter
@@ -39,6 +39,7 @@ cat /var/log/piflyinstalllog.txt
     festival - text to speech package
     SoX - Audio Resample
     matplotlib - Plot Library for Python
+    man page for wiringPi gpio command
       
 **File Description**
 
@@ -81,7 +82,7 @@ God bless them all.
 
 **• Servos:** Can control up to eight servos. (Standard 6 volt servos will require 2 LiPo cells, higher voltage tolerant servos can use 2 or 3 LiPo cells)
 
-**• High Current Outputs:** Intended for Rocket upper stage igniters and parachutes, these high current, high side drivers have borh voltage and current diagnostics. There is a redundant enable system to prevent false assertions. Connections use press-to-release terminal blocks so there is no possibility of forgetting to tighten a screw enough.
+**• High Current Outputs:** Intended for Rocket upper stage igniters and parachutes, these high current, high side drivers have borh voltage and current diagnostics. There is a redundant enable system to prevent false assertions. Connections use press-to-release terminal blocks so there is no possibility of forgetting to tighten a screw terminal.
 
 **• Support for headless operation:**  There is a shutdown button and a shutdown acknowledgment LED for safe headless shutdown. There is also a low battery comparator that can assert the shutdown request.
 
@@ -89,13 +90,13 @@ God bless them all.
 
 **• USB redirected:** Cannot use the USB port in the 32mm width. The USB test points on a Raspberry Pi Zero can be soldered to test points on the HAT board for the USB type A connector and still fit in a 38mm tube coupler.
 
-**• GPS:** The board uses the Skytrac Venus838 module. In binary mode this device can make 50 location updates per second. It has an SMA connector for an external antenna. This is required for the use of a helical, omni directional antenna. GPS data can be backed up with a super capacitor that has a connector for an external rechargeable coin cell. Currently there is only Raspberry Pi support for ASCII NMEA-0183 compatible output at 10 location updates per second. There is also a four pin connector for an external GPS if the board is built without the onboard GPS.
+**• GPS:** The board uses the Skytrac Venus838 module. In binary mode this device can make 50 location updates per second. It has an SMA connector for an external antenna. This is required for the use of a helical, omni directional antenna. GPS data can be backed up with a super capacitor that has a connector for an external rechargeable coin cell. There is existing support for ASCII NMEA-0183 compatible output at 10 location updates per second. The libpifly library has support for binary mode at 50 locations per second. There is also a four pin connector for an external GPS if the PiFly board is built without the onboard GPS.
 
 **• I/Os:** Most have ESD protection.
 
 **• A/D support:** Supports either 8, 10, or 12 bit A/D converters. The default build uses the 10 bit TI ADS7957SDBTR A/D converter with 16 channels; some for internal measurement and diagnostics and some external channels. The external A/D connector is a 0.050” pitch connector. Two external channels can be set up for thermistors. Uses SPI interface.
 
-**• Keypad support:** A connector for either a standard six-key keypad or a standard 12-key keypad connected through a resistor array to a A/D input. With an external resistor array 26 keys are possible.
+**• Keypad support:** A connector for either a standard six-key keypad or a standard 12-key keypad connected through a resistor array to a A/D input. With an external resistor array 26 keys are possible. See http://rau-deaver.org/1-wire_keyboard.html
 
 **• High G linear accelerometer:** Uses NXP (Qualcom) MMA6555KW as on Altus Metrum’s TeleMega. Uses SPI interface.
 
@@ -109,7 +110,7 @@ God bless them all.
 
 **• Audio Output:** GPIO13 has PWM audio filter, amplifier, and connector.
 
-**• Microphone:** Knowles SPH0645LM4H-B on the I2S bus.
+**• Microphone:** Knowles SPH0645LM4H-B on the I2S bus left channel (word select=0).
 
 **• Time of Day Clock:** Maxim DS3231S using the GPS Super Cap/Battery Backup.
 

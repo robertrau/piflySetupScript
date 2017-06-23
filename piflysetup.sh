@@ -171,25 +171,28 @@
 #      By: Robert S. Rau & Rob F. Rau II
 # Changes: Post install summary updated.
 #
+# Updated: 5/29/2017
+#    Rev.: 1.33
+#      By: Robert S. Rau & Rob F. Rau II
+# Changes: Installed gpio man page
 #
-PIFLYSETUPVERSION=1.32
+#
+PIFLYSETUPVERSION=1.33
 #
 # Things to think about
 # 1) Should we set up an email account "PiFlyUser" to make it easier for users to share or report problems?
 # 2) Should we set up a blog for sharing?
 # 3) Should this script ask for a call sign during setup, install differently if none provided?
-# 4) Should the shutdown button enable be delayed to the very end of the script?
+# 4) Should the shutdown button enable be delayed to the very end of the script? -- No, keep your finger off the button unless you want to restart!
 # 5) Should the end of the script remind the user to set time zone, country, and so on? -- Done
-# 6) Cleanup, remove source and unnecessary files?
+# 6) Cleanup, remove source and unnecessary files? -- No, there is plenty of space.
 # 7) Need to abort on failure
 # 8) Need to check that there is enough space to do the whole install.
 # 9) How to get pifm and nbfm to work on any NOOBS from 1.9.2 on?, They work on NOOBS 1.50, 1.70, 1.80, 1.90. rpitx works on 2.3.0
 # 10) text2wave can't make a very long file with -F 48000 (needed for rpitx) for some reason, we now must use -F 6000 and SoX to change
+# 11) Need to insert line into gpio-halt code to turn on Shutdown LED D7 on GPIO16 (pin 36)
 #
 #
-#Time setup
-# see http://raspberrypi.stackexchange.com/questions/47542/raspberry-pi-wont-update-time
-#sudo date -s "$(wget -qSO- --max-redirect=0 google.com 2>&1 | grep Date: | cut -d' ' -f5-8)Z"
 #
 logFilePath=/var/log/piflyinstalllog.txt
 mydirectory=$(pwd)     #  remember what directory I started in
@@ -310,6 +313,9 @@ else
   echo "PiFly Setup: git clone of Adafruit_GPIO_Halt: result" $? >> $logFilePath
   cd Adafruit-GPIO-Halt
 fi
+#
+# Need to insert line into gpio-halt code to turn on Shutdown LED D7 on GPIO16 (pin 36)    *******************************************
+#
 make
 echo "PiFly Setup: make of Adafruit_GPIO_Halt: result" $? >> $logFilePath
 make install
@@ -456,8 +462,6 @@ chown pi:pi pkt2wave
 #
 #
 #
-#
-#
 ########## 4) install audio support
 #
 # Text to speech and text to wave support    see:https://learn.adafruit.com/speech-synthesis-on-the-raspberry-pi/installing-the-festival-speech-package  ***** moved to top  ****
@@ -568,7 +572,18 @@ echo "alias ll='ls -alh'"  >> /home/pi/.bashrc
 echo "PiFly Setup: ~/.bashrc appending for an alias: result" $? >> $logFilePath
 #
 #
-#
+# Add the gpio man page
+cd /home/pi/pifly
+if [ -d wiringPi ]; then
+  cd wiringPi
+  git pull
+  echo "PiFly Setup: git pull of wiringPi: result" $? >> $logFilePath
+  cp gpio/gpio.1 /usr/local/man/man1
+else
+  git clone git://git.drogon.net/wiringPi
+  echo "PiFly Setup: git clone of wiringPi: result" $? >> $logFilePath
+  cp wiringPi/gpio/gpio.1 /usr/local/man/man1
+fi
 #
 #
 #
@@ -581,4 +596,4 @@ echo "Installed: pifly, nbfm, rpitx, i2c-tools, scrot, python-matplotlib, SoX, a
 echo "Hardware shutdown can be done by grounding GPIO" $HALTGPIOBIT "using switch SW1"
 echo "USB flash drives will be read-write after re-boot. PWM audio is available on GPIO13 and amplified on connector P4."
 echo "You must re-boot for all the changes to take effect. Remember to set country and time zone"
-# Should load some libpifly examples
+# 
