@@ -176,8 +176,18 @@
 #      By: Robert S. Rau & Rob F. Rau II
 # Changes: Installed gpio man page
 #
+# Updated: 6/23/2017
+#    Rev.: 1.34
+#      By: Robert S. Rau & Rob F. Rau II
+# Changes: added python dev tools
 #
-PIFLYSETUPVERSION=1.33
+# Updated: 7/1/2017
+#    Rev.: 1.35
+#      By: Robert S. Rau & Rob F. Rau II
+# Changes: sed now generally returns success of replace (added ;q).  gpio-halt will no longer re-append to rc.local. gpio_alt now properly appends to rc.local
+#
+#
+PIFLYSETUPVERSION=1.35
 #
 # Things to think about
 # 1) Should we set up an email account "PiFlyUser" to make it easier for users to share or report problems?
@@ -321,17 +331,21 @@ echo "PiFly Setup: make of Adafruit_GPIO_Halt: result" $? >> $logFilePath
 make install
 echo "PiFly Setup: make install of Adafruit_GPIO_Halt: result" $? >> $logFilePath
 #
+cat /etc/rc.local | grep -q gpio-halt
+GPIO-HALT_NOT_FOUND=$?
+if [ GPIO-HALT_NOT_FOUND -eq 1 ]; then
 #    **** These next lines add gpio-halt... to end of rc.local before exit 0 line. They also combine the error codes to one number (just for fun)
-sed -i.bak -e "s/exit 0//" /etc/rc.local
-GPIOHALTRES=$(($?*10))
-echo "/usr/local/bin/gpio-halt" $HALTGPIOBIT "&" >> /etc/rc.local
-GPIOHALTRES=$(($?+$GPIOHALTRES))
-GPIOHALTRES=$((10*$GPIOHALTRES))
-echo "exit 0" >> /etc/rc.local
-GPIOHALTRES=$(($?+$GPIOHALTRES))
-echo "PiFly Setup: gpio-halt" $HALTGPIOBIT "&: result" $GPIOHALTRES >> $logFilePath
-cd /home/pi/pifly
-chown -R pi:pi Adafruit-GPIO-Halt
+  sed -i.bak -e "s/exit 0//;q" /etc/rc.local
+  GPIOHALTRES=$(($?*10))
+  echo "/usr/local/bin/gpio-halt" $HALTGPIOBIT "&" >> /etc/rc.local
+  GPIOHALTRES=$(($?+$GPIOHALTRES))
+  GPIOHALTRES=$((10*$GPIOHALTRES))
+  echo "exit 0" >> /etc/rc.local
+  GPIOHALTRES=$(($?+$GPIOHALTRES))
+  echo "PiFly Setup: gpio-halt" $HALTGPIOBIT "&: result" $GPIOHALTRES >> $logFilePath
+  cd /home/pi/pifly
+  chown -R pi:pi Adafruit-GPIO-Halt
+fi
 #
 #
 # Enable SPI, I2c, I2S.
@@ -484,16 +498,22 @@ else
   echo "PiFly Setup: git clone of LEDMatrix: result" $? >> $logFilePath
   cd ./LEDMatrix
 fi
-cd src
-gcc -o gpio_alt gpio_alt.c
-echo "PiFly Setup: gcc of gpio_alt.c: result" $? >> $logFilePath
-chown root:root gpio_alt
-chmod u+s gpio_alt
-mv gpio_alt /usr/local/bin/
-echo "PiFly Setup: move of gpio_alt.c to /usr/local/bin/: result" $? >> $logFilePath
-gpio_alt -p 13 -f 0
-echo "PiFly Setup: gpio_alt -p 13 -f 0: result" $? >> $logFilePath
 #
+cat /etc/rc.local | grep -q gpio_alt
+GPIO_ALT_NOT_FOUND=$?
+if [ GPIO_ALT_NOT_FOUND -eq 1 ]; then
+  cd src
+  gcc -o gpio_alt gpio_alt.c
+  echo "PiFly Setup: gcc of gpio_alt.c: result" $? >> $logFilePath
+  chown root:root gpio_alt
+  chmod u+s gpio_alt
+  mv gpio_alt /usr/local/bin/
+  echo "PiFly Setup: move of gpio_alt.c to /usr/local/bin/: result" $? >> $logFilePath
+  gpio_alt -p 13 -f 0
+  echo "PiFly Setup: gpio_alt -p 13 -f 0: result" $? >> $logFilePath
+  sed -i.bak -e "/exit 0/i gpio_alt -p 13 -f 0" /etc/rc.local
+  echo "PiFly Setup: sed -i.bak -e '/exit 0/i gpio_alt -p 13 -f 0':" >> $logFilePath
+fi
 #
 #
 #
@@ -505,7 +525,7 @@ apt-get -y install festival
 echo "PiFly Setup: apt-get festival: result" $? >> $logFilePath
 #
 # Slow down rate of speech a bit
-sed -i.bak -e "s/(Parameter.set 'Duration_Stretch 1.1)/(Parameter.set 'Duration_Stretch 1.6)/"  /usr/share/festival/voices/english/kal_diphone/festvox/kal_diphone.scm
+sed -i.bak -e "s/(Parameter.set 'Duration_Stretch 1.1)/(Parameter.set 'Duration_Stretch 1.6)/;q"  /usr/share/festival/voices/english/kal_diphone/festvox/kal_diphone.scm
 echo "PiFly Setup: sed, Slow down of speech: result" $? >> $logFilePath
 #
 #
@@ -557,6 +577,9 @@ apt-get -y install scrot
 echo "PiFly Setup: apt-getapt-get scrot: result" $? >> $logFilePath
 #
 #
+#
+# Python stuff
+apt-get install python-smbus python3-smbus python-dev python3-dev
 #
 #
 # Install I2C tools
