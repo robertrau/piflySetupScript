@@ -335,7 +335,7 @@ cat /etc/rc.local | grep -q gpio-halt
 GPIO-HALT_NOT_FOUND=$?
 if [ GPIO-HALT_NOT_FOUND -eq 1 ]; then
 #    **** These next lines add gpio-halt... to end of rc.local before exit 0 line. They also combine the error codes to one number (just for fun)
-  sed -i.bak -e "s/exit 0//;q" /etc/rc.local
+  echo "PiFly Setup: gpio-halt not found in rc.local" >> $logFilePath  sed -i.bak -e "s/exit 0//;q" /etc/rc.local
   GPIOHALTRES=$(($?*10))
   echo "/usr/local/bin/gpio-halt" $HALTGPIOBIT "&" >> /etc/rc.local
   GPIOHALTRES=$(($?+$GPIOHALTRES))
@@ -345,6 +345,8 @@ if [ GPIO-HALT_NOT_FOUND -eq 1 ]; then
   echo "PiFly Setup: gpio-halt" $HALTGPIOBIT "&: result" $GPIOHALTRES >> $logFilePath
   cd /home/pi/pifly
   chown -R pi:pi Adafruit-GPIO-Halt
+else
+  echo "PiFly Setup: gpio-halt already in rc.local" >> $logFilePath  sed -i.bak -e "s/exit 0//;q" /etc/rc.local
 fi
 #
 #
@@ -425,7 +427,7 @@ else
   cd ./rpitx
 fi
 ./install.sh
-echo "PiFly Setup:rpitx install: result" $? >> $logFilePath
+echo "PiFly Setup: rpitx install: result" $? >> $logFilePath
 #
 # Fetch demo scripts
 cp /home/pi/piflysetupscript/text2RFrpitx.sh .
@@ -502,6 +504,7 @@ fi
 cat /etc/rc.local | grep -q gpio_alt
 GPIO_ALT_NOT_FOUND=$?
 if [ GPIO_ALT_NOT_FOUND -eq 1 ]; then
+  echo "PiFly Setup: gpio_alt not found in rc.local" >> $logFilePath
   cd src
   gcc -o gpio_alt gpio_alt.c
   echo "PiFly Setup: gcc of gpio_alt.c: result" $? >> $logFilePath
@@ -513,6 +516,8 @@ if [ GPIO_ALT_NOT_FOUND -eq 1 ]; then
   echo "PiFly Setup: gpio_alt -p 13 -f 0: result" $? >> $logFilePath
   sed -i.bak -e "/exit 0/i gpio_alt -p 13 -f 0" /etc/rc.local
   echo "PiFly Setup: sed -i.bak -e '/exit 0/i gpio_alt -p 13 -f 0':" >> $logFilePath
+else
+  echo "PiFly Setup: gpio_alt already in rc.local" >> $logFilePath
 fi
 #
 #
@@ -542,7 +547,7 @@ echo "PiFly Setup: apt-get SoX: result" $? >> $logFilePath
 #
 #
 #
-########## 5) Video downlink support
+########## 5) Graphics for Video downlink support
 #
 # Python matplotlib
 echo "PiFly setup: Starting python-matplotlib setup" >> $logFilePath
@@ -559,7 +564,22 @@ echo "PiFly Setup: apt-get python-matplotlib: result" $? >> $logFilePath
 #
 ########## 6) High current output support
 #
-# see  http://abyz.co.uk/rpi/pigpio/index.html
+cat /etc/rc.local | grep -q write
+HIGH_CURRENT_OUT_NOT_FOUND=$?
+if [ HIGH_CURRENT_OUT_NOT_FOUND -eq 1 ]; then
+  echo "PiFly Setup: High current support not found in rc.local" >> $logFilePath
+  sed -i.bak -e "/exit 0/i gpio -g mode 17 out   # Fire A output" /etc/rc.local
+  sed -i.bak -e "/exit 0/i gpio -g mode 22 out   # Fire B output" /etc/rc.local
+  sed -i.bak -e "/exit 0/i gpio -g mode 23 out   # Fire C output" /etc/rc.local
+  sed -i.bak -e "/exit 0/i gpio -g mode 24 out   # Fire D output" /etc/rc.local
+  sed -i.bak -e "/exit 0/i gpio -g write 17 0   # Fire A set to zero" /etc/rc.local
+  sed -i.bak -e "/exit 0/i gpio -g write 22 0   # Fire B set to zero" /etc/rc.local
+  sed -i.bak -e "/exit 0/i gpio -g write 23 0   # Fire C set to zero" /etc/rc.local
+  sed -i.bak -e "/exit 0/i gpio -g write 24 0   # Fire D set to zero" /etc/rc.local
+  sed -i.bak -e "/exit 0/i gpio -g mode 25 out   # Arm clock set to output" /etc/rc.local
+  sed -i.bak -e "/exit 0/i gpio -g write 25 0   # Arm clock set to zero" /etc/rc.local
+  echo "PiFly Setup: High current setup added to rc.local" >> $logFilePath
+fi
 #
 #
 #
@@ -615,8 +635,9 @@ echo ""
 echo ""
 echo "PiFly Setup Script version" $PIFLYSETUPVERSION
 echo "Most software is installed under ~/pifly. These files were changed: /boot/cmdline.txt, /etc/rc.local, and /home/pi/.bashrc"
-echo "Installed: pifly, nbfm, rpitx, i2c-tools, scrot, python-matplotlib, SoX, and festival"
+echo "Installed: pifly, nbfm, rpitx, pkt2wave, i2c-tools, gpio, gpio-halt, gpio_alt, scrot, python-matplotlib, SoX, and festival"
 echo "Hardware shutdown can be done by grounding GPIO" $HALTGPIOBIT "using switch SW1"
 echo "USB flash drives will be read-write after re-boot. PWM audio is available on GPIO13 and amplified on connector P4."
+echo "GPIOs for high current outputs set to output zero. Added smbus (i2c) support to Python. ll alias setup in .bashrc."
 echo "You must re-boot for all the changes to take effect. Remember to set country and time zone"
 # 
