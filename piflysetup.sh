@@ -186,8 +186,13 @@
 #      By: Robert S. Rau & Rob F. Rau II
 # Changes: sed now generally returns success of replace (added ;q).  gpio-halt will no longer re-append to rc.local. gpio_alt now properly appends to rc.local
 #
+# Updated: 7/3/2017
+#    Rev.: 1.36
+#      By: Robert S. Rau & Rob F. Rau II
+# Changes: Summary at end now in green text, fixed rc.local edits
 #
-PIFLYSETUPVERSION=1.35
+#
+PIFLYSETUPVERSION=1.36
 #
 # Things to think about
 # 1) Should we set up an email account "PiFlyUser" to make it easier for users to share or report problems?
@@ -332,10 +337,11 @@ make install
 echo "PiFly Setup: make install of Adafruit_GPIO_Halt: result" $? >> $logFilePath
 #
 cat /etc/rc.local | grep -q gpio-halt
-GPIO-HALT_NOT_FOUND=$?
-if [ GPIO-HALT_NOT_FOUND -eq 1 ]; then
+GPIO_HALT_NOT_FOUND=$?
+if [ $GPIO_HALT_NOT_FOUND -eq 1 ]; then
 #    **** These next lines add gpio-halt... to end of rc.local before exit 0 line. They also combine the error codes to one number (just for fun)
-  echo "PiFly Setup: gpio-halt not found in rc.local" >> $logFilePath  sed -i.bak -e "s/exit 0//;q" /etc/rc.local
+  echo "PiFly Setup: gpio-halt not found in rc.local" >> $logFilePath
+  sed -i.bak -e "s/exit 0//;q" /etc/rc.local
   GPIOHALTRES=$(($?*10))
   echo "/usr/local/bin/gpio-halt" $HALTGPIOBIT "&" >> /etc/rc.local
   GPIOHALTRES=$(($?+$GPIOHALTRES))
@@ -503,7 +509,7 @@ fi
 #
 cat /etc/rc.local | grep -q gpio_alt
 GPIO_ALT_NOT_FOUND=$?
-if [ GPIO_ALT_NOT_FOUND -eq 1 ]; then
+if [ $GPIO_ALT_NOT_FOUND -eq 1 ]; then
   echo "PiFly Setup: gpio_alt not found in rc.local" >> $logFilePath
   cd src
   gcc -o gpio_alt gpio_alt.c
@@ -514,7 +520,7 @@ if [ GPIO_ALT_NOT_FOUND -eq 1 ]; then
   echo "PiFly Setup: move of gpio_alt.c to /usr/local/bin/: result" $? >> $logFilePath
   gpio_alt -p 13 -f 0
   echo "PiFly Setup: gpio_alt -p 13 -f 0: result" $? >> $logFilePath
-  sed -i.bak -e "/exit 0/i gpio_alt -p 13 -f 0" /etc/rc.local
+  sed -i.bak -e "/^exit 0/i gpio_alt -p 13 -f 0" /etc/rc.local
   echo "PiFly Setup: sed -i.bak -e '/exit 0/i gpio_alt -p 13 -f 0':" >> $logFilePath
 else
   echo "PiFly Setup: gpio_alt already in rc.local" >> $logFilePath
@@ -566,18 +572,21 @@ echo "PiFly Setup: apt-get python-matplotlib: result" $? >> $logFilePath
 #
 cat /etc/rc.local | grep -q write
 HIGH_CURRENT_OUT_NOT_FOUND=$?
-if [ HIGH_CURRENT_OUT_NOT_FOUND -eq 1 ]; then
+if [ $HIGH_CURRENT_OUT_NOT_FOUND -eq 1 ]; then
   echo "PiFly Setup: High current support not found in rc.local" >> $logFilePath
-  sed -i.bak -e "/exit 0/i gpio -g mode 17 out   # Fire A output" /etc/rc.local
-  sed -i.bak -e "/exit 0/i gpio -g mode 22 out   # Fire B output" /etc/rc.local
-  sed -i.bak -e "/exit 0/i gpio -g mode 23 out   # Fire C output" /etc/rc.local
-  sed -i.bak -e "/exit 0/i gpio -g mode 24 out   # Fire D output" /etc/rc.local
-  sed -i.bak -e "/exit 0/i gpio -g write 17 0   # Fire A set to zero" /etc/rc.local
-  sed -i.bak -e "/exit 0/i gpio -g write 22 0   # Fire B set to zero" /etc/rc.local
-  sed -i.bak -e "/exit 0/i gpio -g write 23 0   # Fire C set to zero" /etc/rc.local
-  sed -i.bak -e "/exit 0/i gpio -g write 24 0   # Fire D set to zero" /etc/rc.local
-  sed -i.bak -e "/exit 0/i gpio -g mode 25 out   # Arm clock set to output" /etc/rc.local
-  sed -i.bak -e "/exit 0/i gpio -g write 25 0   # Arm clock set to zero" /etc/rc.local
+#  can I do sed -i.bak -e "s/^exit 0//;q" /etc/rc.local
+  sed -i.bak -e "s/exit 0//;q" /etc/rc.local
+  echo "gpio -g mode 17 out   # Fire A output" >> /etc/rc.local
+  echo "gpio -g mode 22 out   # Fire B output" >> /etc/rc.local
+  echo "gpio -g mode 23 out   # Fire C output" >> /etc/rc.local
+  echo "gpio -g mode 24 out   # Fire D output" >> /etc/rc.local
+  echo "gpio -g write 17 0   # Fire A set to zero" >> /etc/rc.local
+  echo "gpio -g write 22 0   # Fire B set to zero" >> /etc/rc.local
+  echo "gpio -g write 23 0   # Fire C set to zero" >> /etc/rc.local
+  echo "gpio -g write 24 0   # Fire D set to zero" >> /etc/rc.local
+  echo "gpio -g mode 25 out   # Arm clock set to output" >> /etc/rc.local
+  echo "gpio -g write 25 0   # Arm clock set to zero" >> /etc/rc.local
+  echo "exit 0" >> /etc/rc.local
   echo "PiFly Setup: High current setup added to rc.local" >> $logFilePath
 fi
 #
@@ -633,6 +642,7 @@ fi
 #
 echo ""
 echo ""
+tput setaf 2      # highlight summary text to make it more attention getting.
 echo "PiFly Setup Script version" $PIFLYSETUPVERSION
 echo "Most software is installed under ~/pifly. These files were changed: /boot/cmdline.txt, /etc/rc.local, and /home/pi/.bashrc"
 echo "Installed: pifly, nbfm, rpitx, pkt2wave, i2c-tools, gpio, gpio-halt, gpio_alt, scrot, python-matplotlib, SoX, and festival"
