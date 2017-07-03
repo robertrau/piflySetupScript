@@ -262,7 +262,7 @@ else
 mkdir pifly
 echo "PiFly Setup: pifly directory created: result" $? >> $logFilePath
 fi
-chown pi:pi pifly
+chown pi:pi pifly     # because when this script is run with sudo, everything belongs to root
 echo "PiFly Setup: mkdir pifly: result" $? >> $logFilePath
 # switch to install directory
 cd /home/pi/pifly
@@ -331,6 +331,15 @@ fi
 #
 # Need to insert line into gpio-halt code to turn on Shutdown LED D7 on GPIO16 (pin 36)    *******************************************
 #
+#
+# DEBUG ****************
+#
+echo "" >> $logFilePath
+echo "" >> $logFilePath
+cat /etc/rc.local >> $logFilePath
+echo "" >> $logFilePath
+echo "" >> $logFilePath
+# ************************
 make
 echo "PiFly Setup: make of Adafruit_GPIO_Halt: result" $? >> $logFilePath
 make install
@@ -341,7 +350,7 @@ GPIO_HALT_NOT_FOUND=$?
 if [ $GPIO_HALT_NOT_FOUND -eq 1 ]; then
 #    **** These next lines add gpio-halt... to end of rc.local before exit 0 line. They also combine the error codes to one number (just for fun)
   echo "PiFly Setup: gpio-halt not found in rc.local" >> $logFilePath
-  sed -i.bak -e "s/exit 0//;q" /etc/rc.local
+  sed -i.bak -e "s/^exit 0//;q" /etc/rc.local
   GPIOHALTRES=$(($?*10))
   echo "/usr/local/bin/gpio-halt" $HALTGPIOBIT "&" >> /etc/rc.local
   GPIOHALTRES=$(($?+$GPIOHALTRES))
@@ -350,11 +359,19 @@ if [ $GPIO_HALT_NOT_FOUND -eq 1 ]; then
   GPIOHALTRES=$(($?+$GPIOHALTRES))
   echo "PiFly Setup: gpio-halt" $HALTGPIOBIT "&: result" $GPIOHALTRES >> $logFilePath
   cd /home/pi/pifly
-  chown -R pi:pi Adafruit-GPIO-Halt
+  chown -R pi:pi Adafruit-GPIO-Halt     # because when this script is run with sudo, everything belongs to root
 else
-  echo "PiFly Setup: gpio-halt already in rc.local" >> $logFilePath  sed -i.bak -e "s/exit 0//;q" /etc/rc.local
+  echo "PiFly Setup: gpio-halt already in rc.local" >> $logFilePath
 fi
 #
+# DEBUG ****************
+#
+echo "" >> $logFilePath
+echo "" >> $logFilePath
+cat /etc/rc.local >> $logFilePath
+echo "" >> $logFilePath
+echo "" >> $logFilePath
+# ************************
 #
 # Enable SPI, I2c, I2S.
 # see  http://raspberrypi.stackexchange.com/questions/14229/how-can-i-enable-the-camera-without-using-raspi-config
@@ -416,7 +433,7 @@ echo "PiFly Setup: Starting gcc -O3 -lm -std=gnu99 -o nbfm nbfm.c &> $logFilePat
 gcc -O3 -lm -std=gnu99 -o nbfm nbfm.c &>> $logFilePath                 # changed from -std=c99 to -std=gnu99, and -o3 to -O3
 echo "PiFly Setup: gcc -O3 -lm -std=gnu99 -o nbfm nbfm.c &>> $logFilePath: result" $? >> $logFilePath
 cd /home/pi/pifly
-chown -R pi:pi NBFM
+chown -R pi:pi NBFM     # because when this script is run with sudo, everything belongs to root
 echo "PiFly Setup: chown -R pi:pi NBFM: result" $? >> $logFilePath
 #
 #
@@ -439,7 +456,7 @@ echo "PiFly Setup: rpitx install: result" $? >> $logFilePath
 cp /home/pi/piflysetupscript/text2RFrpitx.sh .
 mv /home/pi/piflysetupscript/Demo144-39MHz.sh .
 cd /home/pi/pifly
-chown -R pi:pi rpitx
+chown -R pi:pi rpitx     # because when this script is run with sudo, everything belongs to root
 #
 #
 #
@@ -456,12 +473,12 @@ else
   echo "PiFly Setup: git clone of pifm: result" $? >> $logFilePath
   cd ./pifm
 fi
-chown pi:pi pifm.cpp
+chown pi:pi pifm.cpp     # because when this script is run with sudo, everything belongs to root
 echo "PiFly Setup: chown pi:pi pifm.cpp: result" $? >> $logFilePath
 g++ -O3 -o pifm pifm.cpp &>> $logFilePath
 echo "PiFly Setup: pifm:g++ pifm: result" $? >> $logFilePath
 cd /home/pi/pifly
-chown -R pi:pi pifm
+chown -R pi:pi pifm     # because when this script is run with sudo, everything belongs to root
 #
 #
 #  Packet radio modulator. Text to modem .WAV file
@@ -469,7 +486,7 @@ cd /home/pi/pifly
 wget https://raw.githubusercontent.com/km4efp/pifox/master/pifox/pkt2wave
 echo "PiFly Setup: wget pkt2wave: result" $? >> $logFilePath
 chmod +x pkt2wave
-chown pi:pi pkt2wave
+chown pi:pi pkt2wave     # because when this script is run with sudo, everything belongs to root
 #
 #
 #
@@ -526,6 +543,14 @@ else
   echo "PiFly Setup: gpio_alt already in rc.local" >> $logFilePath
 fi
 #
+# DEBUG ****************
+#
+echo "" >> $logFilePath
+echo "" >> $logFilePath
+cat /etc/rc.local >> $logFilePath
+echo "" >> $logFilePath
+echo "" >> $logFilePath
+# ************************
 #
 #
 #
@@ -574,8 +599,7 @@ cat /etc/rc.local | grep -q write
 HIGH_CURRENT_OUT_NOT_FOUND=$?
 if [ $HIGH_CURRENT_OUT_NOT_FOUND -eq 1 ]; then
   echo "PiFly Setup: High current support not found in rc.local" >> $logFilePath
-#  can I do sed -i.bak -e "s/^exit 0//;q" /etc/rc.local
-  sed -i.bak -e "s/exit 0//;q" /etc/rc.local
+  sed -i.bak -e "s/^exit 0//;q" /etc/rc.local   # remove the exit 0 at end (not the one in the comment)
   echo "gpio -g mode 17 out   # Fire A output" >> /etc/rc.local
   echo "gpio -g mode 22 out   # Fire B output" >> /etc/rc.local
   echo "gpio -g mode 23 out   # Fire C output" >> /etc/rc.local
@@ -590,6 +614,14 @@ if [ $HIGH_CURRENT_OUT_NOT_FOUND -eq 1 ]; then
   echo "PiFly Setup: High current setup added to rc.local" >> $logFilePath
 fi
 #
+# DEBUG ****************
+#
+echo "" >> $logFilePath
+echo "" >> $logFilePath
+cat /etc/rc.local >> $logFilePath
+echo "" >> $logFilePath
+echo "" >> $logFilePath
+# ************************
 #
 #
 #
