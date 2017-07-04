@@ -191,8 +191,13 @@
 #      By: Robert S. Rau & Rob F. Rau II
 # Changes: Summary at end now in green text, fixed rc.local edits
 #
+# Updated: 7/4/2017
+#    Rev.: 1.37
+#      By: Robert S. Rau & Rob F. Rau II
+# Changes: sed with ;q is causing all but the first line of a file to be deleted, removed
 #
-PIFLYSETUPVERSION=1.36
+#
+PIFLYSETUPVERSION=1.37
 #
 # Things to think about
 # 1) Should we set up an email account "PiFlyUser" to make it easier for users to share or report problems?
@@ -350,7 +355,7 @@ GPIO_HALT_NOT_FOUND=$?
 if [ $GPIO_HALT_NOT_FOUND -eq 1 ]; then
 #    **** These next lines add gpio-halt... to end of rc.local before exit 0 line. They also combine the error codes to one number (just for fun)
   echo "PiFly Setup: gpio-halt not found in rc.local" >> $logFilePath
-  sed -i.bak -e "s/^exit 0//;q" /etc/rc.local
+  sed -i.bak -e "s/exit 0//" /etc/rc.local
   GPIOHALTRES=$(($?*10))
   echo "/usr/local/bin/gpio-halt" $HALTGPIOBIT "&" >> /etc/rc.local
   GPIOHALTRES=$(($?+$GPIOHALTRES))
@@ -537,7 +542,7 @@ if [ $GPIO_ALT_NOT_FOUND -eq 1 ]; then
   echo "PiFly Setup: move of gpio_alt.c to /usr/local/bin/: result" $? >> $logFilePath
   gpio_alt -p 13 -f 0
   echo "PiFly Setup: gpio_alt -p 13 -f 0: result" $? >> $logFilePath
-  sed -i.bak -e "/^exit 0/i gpio_alt -p 13 -f 0" /etc/rc.local
+  sed -i.bak -e "/exit 0/i gpio_alt -p 13 -f 0" /etc/rc.local
   echo "PiFly Setup: sed -i.bak -e '/exit 0/i gpio_alt -p 13 -f 0':" >> $logFilePath
 else
   echo "PiFly Setup: gpio_alt already in rc.local" >> $logFilePath
@@ -561,7 +566,7 @@ apt-get -y install festival
 echo "PiFly Setup: apt-get festival: result" $? >> $logFilePath
 #
 # Slow down rate of speech a bit
-sed -i.bak -e "s/(Parameter.set 'Duration_Stretch 1.1)/(Parameter.set 'Duration_Stretch 1.6)/;q"  /usr/share/festival/voices/english/kal_diphone/festvox/kal_diphone.scm
+sed -i.bak -e "s/(Parameter.set 'Duration_Stretch 1.1)/(Parameter.set 'Duration_Stretch 1.6)/"  /usr/share/festival/voices/english/kal_diphone/festvox/kal_diphone.scm
 echo "PiFly Setup: sed, Slow down of speech: result" $? >> $logFilePath
 #
 #
@@ -599,7 +604,7 @@ cat /etc/rc.local | grep -q write
 HIGH_CURRENT_OUT_NOT_FOUND=$?
 if [ $HIGH_CURRENT_OUT_NOT_FOUND -eq 1 ]; then
   echo "PiFly Setup: High current support not found in rc.local" >> $logFilePath
-  sed -i.bak -e "s/^exit 0//;q" /etc/rc.local   # remove the exit 0 at end (not the one in the comment)
+  sed -i.bak -e "s/exit 0//" /etc/rc.local   # remove the exit 0 at end (not the one in the comment)
   echo "gpio -g mode 17 out   # Fire A output" >> /etc/rc.local
   echo "gpio -g mode 22 out   # Fire B output" >> /etc/rc.local
   echo "gpio -g mode 23 out   # Fire C output" >> /etc/rc.local
