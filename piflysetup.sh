@@ -196,8 +196,13 @@
 #      By: Robert S. Rau & Rob F. Rau II
 # Changes: sed with ;q is causing all but the first line of a file to be deleted, removed
 #
+# Updated: 7/5/2017
+#    Rev.: 1.38
+#      By: Robert S. Rau & Rob F. Rau II
+# Changes: Added GPS reset to rc.local. Added cmake and screen to dev tool installs. Re-orged summary, Change I2C bus speed to 400kHz (cmdline.txt).
 #
-PIFLYSETUPVERSION=1.37
+#
+PIFLYSETUPVERSION=1.38
 #
 # Things to think about
 # 1) Should we set up an email account "PiFlyUser" to make it easier for users to share or report problems?
@@ -337,14 +342,6 @@ fi
 # Need to insert line into gpio-halt code to turn on Shutdown LED D7 on GPIO16 (pin 36)    *******************************************
 #
 #
-# DEBUG ****************
-#
-echo "" >> $logFilePath
-echo "" >> $logFilePath
-cat /etc/rc.local >> $logFilePath
-echo "" >> $logFilePath
-echo "" >> $logFilePath
-# ************************
 make
 echo "PiFly Setup: make of Adafruit_GPIO_Halt: result" $? >> $logFilePath
 make install
@@ -369,26 +366,18 @@ else
   echo "PiFly Setup: gpio-halt already in rc.local" >> $logFilePath
 fi
 #
-# DEBUG ****************
-#
-echo "" >> $logFilePath
-echo "" >> $logFilePath
-cat /etc/rc.local >> $logFilePath
-echo "" >> $logFilePath
-echo "" >> $logFilePath
-# ************************
 #
 # Enable SPI, I2c, I2S.
 # see  http://raspberrypi.stackexchange.com/questions/14229/how-can-i-enable-the-camera-without-using-raspi-config
 #
 #
-# Edit cmdline.txt st serial port is available for GPS
+# Edit cmdline.txt so serial port is available for GPS
 echo "PiFly setup: Starting cmdline.txt editing" >> $logFilePath
 echo "PiFly Setup: cmdline.txt was:" >> $logFilePath
 cat /boot/cmdline.txt >> $logFilePath
 sed -i.bak -e 's/console=ttyAMA0\,115200 //' -e 's/kgdboc=ttyAMA0,115200 //' -e 's/console=serial0,115200 //' /boot/cmdline.txt
-echo "PiFly Setup: cmdline.txt update: result" $? >> $logFilePath
-echo "PiFly Setup: cmdline.txt is now:" >> $logFilePath
+echo "PiFly Setup: cmdline.txt update for serial: result" $? >> $logFilePath
+echo "PiFly Setup: cmdline.txt after serial updates:" >> $logFilePath
 cat /boot/cmdline.txt >> $logFilePath
 #
 #
@@ -396,14 +385,10 @@ cat /boot/cmdline.txt >> $logFilePath
 #
 #
 # Set I2C speed to 400kHz
-# /etc/modules: kernel modules to load at boot time.
-#
-# This file contains the names of kernel modules that should be loaded
-# at boot time, one per line. Lines beginning with "#" are ignored.
-# Parameters can be specified after the module name.
-#snd-bcm2835
-#i2c-bcm2708 baudrate=400000
-#i2c-dev
+sed -i '/=/ s/$/ dtparam=i2c1_baudrate=400000/' /boot/cmdline.txt
+echo "PiFly Setup: cmdline.txt update for i2c: result" $? >> $logFilePath
+echo "PiFly Setup: cmdline.txt after i2c updates:" >> $logFilePath
+cat /boot/cmdline.txt >> $logFilePath
 #
 #
 #
@@ -459,9 +444,12 @@ echo "PiFly Setup: rpitx install: result" $? >> $logFilePath
 #
 # Fetch demo scripts
 cp /home/pi/piflysetupscript/text2RFrpitx.sh .
+echo "PiFly Setup: cp /home/pi/piflysetupscript/text2RFrpitx.sh .: result" $? >> $logFilePath
 mv /home/pi/piflysetupscript/Demo144-39MHz.sh .
+echo "PiFly Setup: mv /home/pi/piflysetupscript/Demo144-39MHz.sh .: result" $? >> $logFilePath
 cd /home/pi/pifly
 chown -R pi:pi rpitx     # because when this script is run with sudo, everything belongs to root
+echo "PiFly Setup: chown -R pi:pi rpitx: result" $? >> $logFilePath
 #
 #
 #
@@ -548,14 +536,6 @@ else
   echo "PiFly Setup: gpio_alt already in rc.local" >> $logFilePath
 fi
 #
-# DEBUG ****************
-#
-echo "" >> $logFilePath
-echo "" >> $logFilePath
-cat /etc/rc.local >> $logFilePath
-echo "" >> $logFilePath
-echo "" >> $logFilePath
-# ************************
 #
 #
 #
@@ -598,13 +578,15 @@ echo "PiFly Setup: apt-get python-matplotlib: result" $? >> $logFilePath
 #
 #
 #
-########## 6) High current output support
+########## 6) High current/GPS output support
 #
 cat /etc/rc.local | grep -q write
 HIGH_CURRENT_OUT_NOT_FOUND=$?
 if [ $HIGH_CURRENT_OUT_NOT_FOUND -eq 1 ]; then
-  echo "PiFly Setup: High current support not found in rc.local" >> $logFilePath
+  echo "PiFly Setup: High current/GPS support not found in rc.local" >> $logFilePath
   sed -i.bak -e "s/exit 0//" /etc/rc.local   # remove the exit 0 at end (not the one in the comment)
+  echo "gpio -g mode 21 out   # GPS reset to output" >> /etc/rc.local
+  echo "gpio -g write 21 0   # assert GPS reset" >> /etc/rc.local
   echo "gpio -g mode 17 out   # Fire A output" >> /etc/rc.local
   echo "gpio -g mode 22 out   # Fire B output" >> /etc/rc.local
   echo "gpio -g mode 23 out   # Fire C output" >> /etc/rc.local
@@ -615,18 +597,11 @@ if [ $HIGH_CURRENT_OUT_NOT_FOUND -eq 1 ]; then
   echo "gpio -g write 24 0   # Fire D set to zero" >> /etc/rc.local
   echo "gpio -g mode 25 out   # Arm clock set to output" >> /etc/rc.local
   echo "gpio -g write 25 0   # Arm clock set to zero" >> /etc/rc.local
+  echo "gpio -g write 21 1   # release GPS reset" >> /etc/rc.local
   echo "exit 0" >> /etc/rc.local
   echo "PiFly Setup: High current setup added to rc.local" >> $logFilePath
 fi
 #
-# DEBUG ****************
-#
-echo "" >> $logFilePath
-echo "" >> $logFilePath
-cat /etc/rc.local >> $logFilePath
-echo "" >> $logFilePath
-echo "" >> $logFilePath
-# ************************
 #
 #
 #
@@ -647,12 +622,22 @@ echo "PiFly Setup: apt-getapt-get scrot: result" $? >> $logFilePath
 # Python stuff
 apt-get install python-smbus python3-smbus python-dev python3-dev
 #
+# for IMU
+git clone https://github.com/richards-tech/RTIMULib2.git
+#
 #
 # Install I2C tools
 echo "PiFly setup: Starting i2c-tools setup" >> $logFilePath
 apt-get install i2c-tools
 echo "PiFly Setup: apt-get install i2c-tools: result" $? >> $logFilePath
 #
+#
+# to build libpifly
+apt-get install cmake
+#
+#
+# To view serial data
+apt-get install screen
 #
 #
 # Setup a handy alias
@@ -676,15 +661,21 @@ fi
 #
 #
 #
+# Math support
+#sudo apt-get install octave
+#
+#
 #
 echo ""
 echo ""
 tput setaf 2      # highlight summary text to make it more attention getting.
 echo "PiFly Setup Script version" $PIFLYSETUPVERSION
 echo "Most software is installed under ~/pifly. These files were changed: /boot/cmdline.txt, /etc/rc.local, and /home/pi/.bashrc"
-echo "Installed: pifly, nbfm, rpitx, pkt2wave, i2c-tools, gpio, gpio-halt, gpio_alt, scrot, python-matplotlib, SoX, and festival"
+echo "Installed software: pifm, nbfm, rpitx, pkt2wave, i2c-tools, gpio, gpio-halt, gpio_alt, scrot, screen, cmake, SoX, and festival"
+echo "Installed Python libraries: matplotlib, python-smbus, python3-smbus, python-dev, python3-dev, and RTIMULib2"
 echo "Hardware shutdown can be done by grounding GPIO" $HALTGPIOBIT "using switch SW1"
 echo "USB flash drives will be read-write after re-boot. PWM audio is available on GPIO13 and amplified on connector P4."
 echo "GPIOs for high current outputs set to output zero. Added smbus (i2c) support to Python. ll alias setup in .bashrc."
+echo " GPS data can be viewed using:  sudo screen /dev/ttyAMA0 9600"
 echo "You must re-boot for all the changes to take effect. Remember to set country and time zone"
 # 
