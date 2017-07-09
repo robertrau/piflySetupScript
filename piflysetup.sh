@@ -201,8 +201,13 @@
 #      By: Robert S. Rau & Rob F. Rau II
 # Changes: Added GPS reset to rc.local. Added cmake and screen to dev tool installs. Re-orged summary, Change I2C bus speed to 400kHz (cmdline.txt).
 #
+# Updated: 7/9/2017
+#    Rev.: 1.39
+#      By: Robert S. Rau & Rob F. Rau II
+# Changes: Added more GPIO setup (LEDs and RF). Added LED support to shutdown program.
 #
-PIFLYSETUPVERSION=1.38
+#
+PIFLYSETUPVERSION=1.39
 #
 # Things to think about
 # 1) Should we set up an email account "PiFlyUser" to make it easier for users to share or report problems?
@@ -339,7 +344,8 @@ else
   cd Adafruit-GPIO-Halt
 fi
 #
-# Need to insert line into gpio-halt code to turn on Shutdown LED D7 on GPIO16 (pin 36)    *******************************************
+# Insert line into gpio-halt code to turn on Shutdown LED D7 on GPIO16 (pin 36)
+sed -i.bak -e '/(void)system("shutdown -h now");/i (void)system("gpio -g write 16 1");' /home/pi/pifly/Adafruit-GPIO-Halt/gpio-halt.c
 #
 #
 make
@@ -578,13 +584,13 @@ echo "PiFly Setup: apt-get python-matplotlib: result" $? >> $logFilePath
 #
 #
 #
-########## 6) High current/GPS output support
+########## 6) High current/GPS/RF/LED output support
 #
 cat /etc/rc.local | grep -q write
 HIGH_CURRENT_OUT_NOT_FOUND=$?
 if [ $HIGH_CURRENT_OUT_NOT_FOUND -eq 1 ]; then
   echo "PiFly Setup: High current/GPS support not found in rc.local" >> $logFilePath
-  sed -i.bak -e "s/exit 0//" /etc/rc.local   # remove the exit 0 at end (not the one in the comment)
+  sed -i.bak -e "s/^exit 0//" /etc/rc.local   # remove the exit 0 at end (not the one in the comment)
   echo "gpio -g mode 21 out   # GPS reset to output" >> /etc/rc.local
   echo "gpio -g write 21 0   # assert GPS reset" >> /etc/rc.local
   echo "gpio -g mode 17 out   # Fire A output" >> /etc/rc.local
@@ -597,9 +603,13 @@ if [ $HIGH_CURRENT_OUT_NOT_FOUND -eq 1 ]; then
   echo "gpio -g write 24 0   # Fire D set to zero" >> /etc/rc.local
   echo "gpio -g mode 25 out   # Arm clock set to output" >> /etc/rc.local
   echo "gpio -g write 25 0   # Arm clock set to zero" >> /etc/rc.local
+  echo "gpio -g mode 16 out   # LED Shutdown Ack output" >> /etc/rc.local
+  echo "gpio -g mode 6 out   # LED & Radio RF amplifier output" >> /etc/rc.local
+  echo "gpio -g write 16 0   # LED Shutdown Ack off" >> /etc/rc.local
+  echo "gpio -g write 6 0   # LED & Radio RF amplifier off" >> /etc/rc.local
   echo "gpio -g write 21 1   # release GPS reset" >> /etc/rc.local
   echo "exit 0" >> /etc/rc.local
-  echo "PiFly Setup: High current setup added to rc.local" >> $logFilePath
+  echo "PiFly Setup: High current/GPS/RF/LED setup added to rc.local" >> $logFilePath
 fi
 #
 #
