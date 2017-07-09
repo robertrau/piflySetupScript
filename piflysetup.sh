@@ -206,21 +206,26 @@
 #      By: Robert S. Rau & Rob F. Rau II
 # Changes: Added more GPIO setup (LEDs and RF). Added LED support to shutdown program.
 #
+# Updated: 7/9/2017
+#    Rev.: 1.40
+#      By: Robert S. Rau & Rob F. Rau II
+# Changes: Added missing -y options to apt-git is several places, RF demo file names fixed, cmdline now enables i2c and SPI
 #
-PIFLYSETUPVERSION=1.39
+#
+PIFLYSETUPVERSION=1.40
 #
 # Things to think about
 # 1) Should we set up an email account "PiFlyUser" to make it easier for users to share or report problems?
 # 2) Should we set up a blog for sharing?
 # 3) Should this script ask for a call sign during setup, install differently if none provided?
-# 4) Should the shutdown button enable be delayed to the very end of the script? -- No, keep your finger off the button unless you want to restart!
+# 4) Should the shutdown button enable be delayed to the very end of the script? -- No, not running until after reboot
 # 5) Should the end of the script remind the user to set time zone, country, and so on? -- Done
 # 6) Cleanup, remove source and unnecessary files? -- No, there is plenty of space.
 # 7) Need to abort on failure
 # 8) Need to check that there is enough space to do the whole install.
 # 9) How to get pifm and nbfm to work on any NOOBS from 1.9.2 on?, They work on NOOBS 1.50, 1.70, 1.80, 1.90. rpitx works on 2.3.0
 # 10) text2wave can't make a very long file with -F 48000 (needed for rpitx) for some reason, we now must use -F 6000 and SoX to change
-# 11) Need to insert line into gpio-halt code to turn on Shutdown LED D7 on GPIO16 (pin 36)
+# 11) Need to insert line into gpio-halt code to turn on Shutdown LED D7 on GPIO16 (pin 36) - done
 #
 #
 #
@@ -272,10 +277,10 @@ echo "" >> $logFilePath
 echo "PiFly setup: Starting directory setup"
 cd /home/pi
 if [ -d pifly ]; then
-echo "PiFly Setup: pifly directory already exists: result" $? >> $logFilePath
+  echo "PiFly Setup: pifly directory already exists: result" $? >> $logFilePath
 else
-mkdir pifly
-echo "PiFly Setup: pifly directory created: result" $? >> $logFilePath
+  mkdir pifly
+  echo "PiFly Setup: pifly directory created: result" $? >> $logFilePath
 fi
 chown pi:pi pifly     # because when this script is run with sudo, everything belongs to root
 echo "PiFly Setup: mkdir pifly: result" $? >> $logFilePath
@@ -297,7 +302,7 @@ echo "PiFly Setup: apt-get update: result" $? >> $logFilePath
 # for SPI see (see DMA note at bottom):https://www.raspberrypi.org/documentation/hardware/raspberrypi/spi/README.md
 echo "PiFly setup: StartingRaspberry Pi configuration"
 #
-apt-get install git
+apt-get -y install git
 echo "PiFly Setup: apt-get install git: result" $? >> $logFilePath
 #
 #
@@ -312,11 +317,6 @@ cp $mydirectory/11-media-by-label-auto-mount.rules /etc/udev/rules.d/
 echo "PiFly Setup: USB drive setup: cp $mydirectory/11-media-by-label-auto-mount.rules /etc/udev/rules.d/: result" $? >> $logFilePath
 udevadm control --reload-rules
 echo "PiFly Setup: USB drive setup: udevadm control --reload-rules: result" $? >> $logFilePath
-#
-#
-#
-#
-#
 #
 #
 #
@@ -391,7 +391,7 @@ cat /boot/cmdline.txt >> $logFilePath
 #
 #
 # Set I2C speed to 400kHz
-sed -i '/=/ s/$/ dtparam=i2c1_baudrate=400000/' /boot/cmdline.txt
+sed -i '/=/ s/$/ dtparam=i2c1=on dtparam=i2c1_baudrate=400000/' /boot/cmdline.txt
 echo "PiFly Setup: cmdline.txt update for i2c: result" $? >> $logFilePath
 echo "PiFly Setup: cmdline.txt after i2c updates:" >> $logFilePath
 cat /boot/cmdline.txt >> $logFilePath
@@ -401,8 +401,10 @@ cat /boot/cmdline.txt >> $logFilePath
 #
 # SPI speed
 # https://raspberrypi.stackexchange.com/questions/699/what-spi-frequencies-does-raspberry-pi-support
-#
-#
+sed -i '/=/ s/$/ dtparam=spi=on/' /boot/cmdline.txt
+echo "PiFly Setup: cmdline.txt update for SPI: result" $? >> $logFilePath
+echo "PiFly Setup: cmdline.txt after SPI updates:" >> $logFilePath
+cat /boot/cmdline.txt >> $logFilePath
 #
 #
 #
@@ -449,9 +451,9 @@ fi
 echo "PiFly Setup: rpitx install: result" $? >> $logFilePath
 #
 # Fetch demo scripts
-cp /home/pi/piflysetupscript/text2RFrpitx.sh .
+cp /home/pi/piflySetupScript/text2RFrpitx.sh .
 echo "PiFly Setup: cp /home/pi/piflysetupscript/text2RFrpitx.sh .: result" $? >> $logFilePath
-mv /home/pi/piflysetupscript/Demo144-39MHz.sh .
+mv /home/pi/piflySetupScript/Demo144-39MHz.sh .
 echo "PiFly Setup: mv /home/pi/piflysetupscript/Demo144-39MHz.sh .: result" $? >> $logFilePath
 cd /home/pi/pifly
 chown -R pi:pi rpitx     # because when this script is run with sudo, everything belongs to root
@@ -630,7 +632,7 @@ echo "PiFly Setup: apt-getapt-get scrot: result" $? >> $logFilePath
 #
 #
 # Python stuff
-apt-get install python-smbus python3-smbus python-dev python3-dev
+apt-get -y install python-smbus python3-smbus python-dev python3-dev
 #
 # for IMU
 git clone https://github.com/richards-tech/RTIMULib2.git
@@ -638,16 +640,16 @@ git clone https://github.com/richards-tech/RTIMULib2.git
 #
 # Install I2C tools
 echo "PiFly setup: Starting i2c-tools setup" >> $logFilePath
-apt-get install i2c-tools
+apt-get -y install i2c-tools
 echo "PiFly Setup: apt-get install i2c-tools: result" $? >> $logFilePath
 #
 #
 # to build libpifly
-apt-get install cmake
+apt-get -y install cmake
 #
 #
 # To view serial data
-apt-get install screen
+apt-get -y install screen
 #
 #
 # Setup a handy alias
