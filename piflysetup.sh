@@ -211,8 +211,12 @@
 #      By: Robert S. Rau & Rob F. Rau II
 # Changes: Added missing -y options to apt-git is several places, RF demo file names fixed, cmdline now enables i2c and SPI
 #
+# Updated: 7/9/2017
+#    Rev.: 1.41
+#      By: Robert S. Rau & Rob F. Rau II
+# Changes: Added gpsbabel install.  Interrupt input setup. 
 #
-PIFLYSETUPVERSION=1.40
+PIFLYSETUPVERSION=1.41
 #
 # Things to think about
 # 1) Should we set up an email account "PiFlyUser" to make it easier for users to share or report problems?
@@ -232,7 +236,7 @@ PIFLYSETUPVERSION=1.40
 logFilePath=/var/log/piflyinstalllog.txt
 mydirectory=$(pwd)     #  remember what directory I started in
 #
-# 0) Check that we are running with root permissions
+########## 0) Check that we are running with root permissions, we have a internet connection and log who we are and what is connected.
 if [[ $EUID > 0 ]]; then
 	echo "Please run using: sudo ./piflysetup.sh"
     echo "PiFly Setup: Aborted, not in sudo." >> $logFilePath
@@ -373,7 +377,7 @@ else
 fi
 #
 #
-# Enable SPI, I2c, I2S.
+# Enable I2c, SPI, I2S.
 # see  http://raspberrypi.stackexchange.com/questions/14229/how-can-i-enable-the-camera-without-using-raspi-config
 #
 #
@@ -408,7 +412,8 @@ cat /boot/cmdline.txt >> $logFilePath
 #
 #
 #
-#
+# Setup i2s for microphone
+#  add dtparam=i2s=on to cmdline.txt    gpio alt for in should be i2s but out should be gpio for GPS reset
 #
 #
 ########## 3) install RF transmitters and modulators
@@ -610,6 +615,8 @@ if [ $HIGH_CURRENT_OUT_NOT_FOUND -eq 1 ]; then
   echo "gpio -g write 16 0   # LED Shutdown Ack off" >> /etc/rc.local
   echo "gpio -g write 6 0   # LED & Radio RF amplifier off" >> /etc/rc.local
   echo "gpio -g write 21 1   # release GPS reset" >> /etc/rc.local
+  echo "gpio -g mode 5 in   # interrupt input" >> /etc/rc.local
+  echo "gpio -g mode 12 in   # interrupt input" >> /etc/rc.local
   echo "exit 0" >> /etc/rc.local
   echo "PiFly Setup: High current/GPS/RF/LED setup added to rc.local" >> $logFilePath
 fi
@@ -648,8 +655,14 @@ echo "PiFly Setup: apt-get install i2c-tools: result" $? >> $logFilePath
 apt-get -y install cmake
 #
 #
-# To view serial data
+# To view serial data for GPS
 apt-get -y install screen
+#
+#
+#
+#  GPS format conversion tool
+apt-get -y install gpsbabel
+#
 #
 #
 # Setup a handy alias
@@ -689,5 +702,7 @@ echo "Hardware shutdown can be done by grounding GPIO" $HALTGPIOBIT "using switc
 echo "USB flash drives will be read-write after re-boot. PWM audio is available on GPIO13 and amplified on connector P4."
 echo "GPIOs for high current outputs set to output zero. Added smbus (i2c) support to Python. ll alias setup in .bashrc."
 echo " GPS data can be viewed using:  sudo screen /dev/ttyAMA0 9600"
-echo "You must re-boot for all the changes to take effect. Remember to set country and time zone"
+echo ""
+tput setaf 5
+echo "You must re-boot for the changes to take effect. Remember to set country and time zone"
 # 
