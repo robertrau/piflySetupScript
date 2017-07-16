@@ -216,7 +216,12 @@
 #      By: Robert S. Rau & Rob F. Rau II
 # Changes: Added gpsbabel install.  Interrupt input setup. 
 #
-PIFLYSETUPVERSION=1.41
+# Updated: 7/16/2017
+#    Rev.: 1.42
+#      By: Robert S. Rau & Rob F. Rau II
+# Changes: Added Adafruit Python Servo library. Overlay to disable Bluetooth on RPi3 & RPi Zero W so GPS can have the good serial port, necessary for 50 Hz updates. moved date header to top of log file, added disk space. Report disk space at end.
+#
+PIFLYSETUPVERSION=1.42
 #
 # Things to think about
 # 1) Should we set up an email account "PiFlyUser" to make it easier for users to share or report problems?
@@ -230,10 +235,14 @@ PIFLYSETUPVERSION=1.41
 # 9) How to get pifm and nbfm to work on any NOOBS from 1.9.2 on?, They work on NOOBS 1.50, 1.70, 1.80, 1.90. rpitx works on 2.3.0
 # 10) text2wave can't make a very long file with -F 48000 (needed for rpitx) for some reason, we now must use -F 6000 and SoX to change
 # 11) Need to insert line into gpio-halt code to turn on Shutdown LED D7 on GPIO16 (pin 36) - done
+# 12) Need to figure out how to use pi3-disable-bt.dtbo overlay so Pi Zero-W can be used with GPS. See: https://www.raspberrypi.org/documentation/configuration/uart.md - done?
 #
 #
 #
 logFilePath=/var/log/piflyinstalllog.txt
+echo "" >> $logFilePath
+date +"%A,  %B %e, %Y, %X %Z" >> $logFilePath
+df -Ph | grep -E '^/dev/root' | awk '{ print $4 " of " $2 }' >> $logFilePath
 mydirectory=$(pwd)     #  remember what directory I started in
 #
 ########## 0) Check that we are running with root permissions, we have a internet connection and log who we are and what is connected.
@@ -381,11 +390,12 @@ fi
 # see  http://raspberrypi.stackexchange.com/questions/14229/how-can-i-enable-the-camera-without-using-raspi-config
 #
 #
-# Edit cmdline.txt so serial port is available for GPS
+# Edit cmdline.txt so serial port is available for GPS. This disables bluetooth on Raspberry Pi 3 and Raspberry Pi Zero W boards.
 echo "PiFly setup: Starting cmdline.txt editing" >> $logFilePath
 echo "PiFly Setup: cmdline.txt was:" >> $logFilePath
 cat /boot/cmdline.txt >> $logFilePath
 sed -i.bak -e 's/console=ttyAMA0\,115200 //' -e 's/kgdboc=ttyAMA0,115200 //' -e 's/console=serial0,115200 //' /boot/cmdline.txt
+sed -i '/=/ s/$/ dtoverlay=pi3-disable-bt/' /boot/cmdline.txt
 echo "PiFly Setup: cmdline.txt update for serial: result" $? >> $logFilePath
 echo "PiFly Setup: cmdline.txt after serial updates:" >> $logFilePath
 cat /boot/cmdline.txt >> $logFilePath
@@ -626,9 +636,6 @@ fi
 #
 #
 #
-#
-#
-#
 ########## 7) Developer tools
 #
 # Screen capture tool
@@ -639,9 +646,10 @@ echo "PiFly Setup: apt-getapt-get scrot: result" $? >> $logFilePath
 #
 #
 # Python stuff
-apt-get -y install python-smbus python3-smbus python-dev python3-dev
+apt-get -y install python-smbus python3-smbus build-essential python-dev python3-dev
 #
 # for IMU
+cd /home/pi/pifly
 git clone https://github.com/richards-tech/RTIMULib2.git
 #
 #
@@ -663,6 +671,13 @@ apt-get -y install screen
 #  GPS format conversion tool
 apt-get -y install gpsbabel
 #
+#
+# Adafruit PCA9685 Python library
+cd /home/pi/pifly
+git clone https://github.com/adafruit/Adafruit_Python_PCA9685.git
+cd Adafruit_Python_PCA9685
+python setup.py install
+# Only servos 8 to 15 are on the PiFly, order is scrambled
 #
 #
 # Setup a handy alias
@@ -691,18 +706,20 @@ fi
 #
 #
 #
+df -Ph | grep -E '^/dev/root' | awk '{ print $4 " of " $2 }' >> $logFilePath
 echo ""
 echo ""
-tput setaf 2      # highlight summary text to make it more attention getting.
+tput setaf 2      # highlight summary text green to make it more attention getting.
 echo "PiFly Setup Script version" $PIFLYSETUPVERSION
 echo "Most software is installed under ~/pifly. These files were changed: /boot/cmdline.txt, /etc/rc.local, and /home/pi/.bashrc"
 echo "Installed software: pifm, nbfm, rpitx, pkt2wave, i2c-tools, gpio, gpio-halt, gpio_alt, scrot, screen, cmake, SoX, and festival"
-echo "Installed Python libraries: matplotlib, python-smbus, python3-smbus, python-dev, python3-dev, and RTIMULib2"
+echo "Installed Python libraries: matplotlib, python-smbus, python3-smbus, build-essential, python-dev, python3-dev, adafruit-pca9685, and RTIMULib2"
 echo "Hardware shutdown can be done by grounding GPIO" $HALTGPIOBIT "using switch SW1"
 echo "USB flash drives will be read-write after re-boot. PWM audio is available on GPIO13 and amplified on connector P4."
 echo "GPIOs for high current outputs set to output zero. Added smbus (i2c) support to Python. ll alias setup in .bashrc."
 echo " GPS data can be viewed using:  sudo screen /dev/ttyAMA0 9600"
+df -Ph | grep -E '^/dev/root' | awk '{ print $4 " of " $2 }'
 echo ""
-tput setaf 5
+tput setaf 5        # highlight text magenta
 echo "You must re-boot for the changes to take effect. Remember to set country and time zone"
 # 
