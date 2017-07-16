@@ -12,7 +12,7 @@ The PiFly board is designed for drones, high power rocketry, and RC airplanes. T
 
 ```
 cd ~
-git clone htpps://github.com/robertrau/piflysetupscript
+git clone htpps://github.com/robertrau/piflySetupScript
 cd piflysetupscript
 sudo ./piflysetup.sh
 ```

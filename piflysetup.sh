@@ -221,7 +221,12 @@
 #      By: Robert S. Rau & Rob F. Rau II
 # Changes: Added Adafruit Python Servo library. Overlay to disable Bluetooth on RPi3 & RPi Zero W so GPS can have the good serial port, necessary for 50 Hz updates. moved date header to top of log file, added disk space. Report disk space at end.
 #
-PIFLYSETUPVERSION=1.42
+# Updated: 7/16/2017
+#    Rev.: 1.43
+#      By: Robert S. Rau & Rob F. Rau II
+# Changes: Fixed omissions from log file (python stuff, servo lib...). added hexdump install. dtparam=i2c1_baudrate=400000 isn't working, i2c still running at 66,666Hz. Another try to make Pi Zero work with GPS.
+#
+PIFLYSETUPVERSION=1.43
 #
 # Things to think about
 # 1) Should we set up an email account "PiFlyUser" to make it easier for users to share or report problems?
@@ -235,7 +240,8 @@ PIFLYSETUPVERSION=1.42
 # 9) How to get pifm and nbfm to work on any NOOBS from 1.9.2 on?, They work on NOOBS 1.50, 1.70, 1.80, 1.90. rpitx works on 2.3.0
 # 10) text2wave can't make a very long file with -F 48000 (needed for rpitx) for some reason, we now must use -F 6000 and SoX to change
 # 11) Need to insert line into gpio-halt code to turn on Shutdown LED D7 on GPIO16 (pin 36) - done
-# 12) Need to figure out how to use pi3-disable-bt.dtbo overlay so Pi Zero-W can be used with GPS. See: https://www.raspberrypi.org/documentation/configuration/uart.md - done?
+# 12) Need to figure out how to use pi3-disable-bt.dtbo overlay so Pi Zero-W can be used with GPS. See: https://www.raspberrypi.org/documentation/configuration/uart.md
+# 13) dtparam=i2c1_baudrate=400000 isn't working, i2c still running at 66,666Hz
 #
 #
 #
@@ -391,12 +397,16 @@ fi
 #
 #
 # Edit cmdline.txt so serial port is available for GPS. This disables bluetooth on Raspberry Pi 3 and Raspberry Pi Zero W boards.
+# found https://openenergymonitor.org/forum-archive/node/12311.html
+# See https://github.com/raspberrypi/linux/blob/rpi-4.1.y/arch/arm/boot/dts/overlays/pi3-disable-bt-overlay.dts
 echo "PiFly setup: Starting cmdline.txt editing" >> $logFilePath
 echo "PiFly Setup: cmdline.txt was:" >> $logFilePath
 cat /boot/cmdline.txt >> $logFilePath
 sed -i.bak -e 's/console=ttyAMA0\,115200 //' -e 's/kgdboc=ttyAMA0,115200 //' -e 's/console=serial0,115200 //' /boot/cmdline.txt
-sed -i '/=/ s/$/ dtoverlay=pi3-disable-bt/' /boot/cmdline.txt
+sed -i '/=/ s/$/ dtoverlay=pi3-disable-bt/' /boot/cmdline.txt         # not working     ******************
 echo "PiFly Setup: cmdline.txt update for serial: result" $? >> $logFilePath
+systemctl disable hciuart
+echo "PiFly Setup: systemctl disable hciuart: result" $? >> $logFilePath
 echo "PiFly Setup: cmdline.txt after serial updates:" >> $logFilePath
 cat /boot/cmdline.txt >> $logFilePath
 #
@@ -647,10 +657,12 @@ echo "PiFly Setup: apt-getapt-get scrot: result" $? >> $logFilePath
 #
 # Python stuff
 apt-get -y install python-smbus python3-smbus build-essential python-dev python3-dev
+echo "PiFly Setup: apt-get -y install python-smbus python3-smbus build-essential python-dev python3-dev: result" $? >> $logFilePath
 #
 # for IMU
 cd /home/pi/pifly
 git clone https://github.com/richards-tech/RTIMULib2.git
+echo "PiFly Setup: git clone https://github.com/richards-tech/RTIMULib2.git: result" $? >> $logFilePath
 #
 #
 # Install I2C tools
@@ -661,23 +673,34 @@ echo "PiFly Setup: apt-get install i2c-tools: result" $? >> $logFilePath
 #
 # to build libpifly
 apt-get -y install cmake
+echo "PiFly Setup: apt-get -y install cmake: result" $? >> $logFilePath
 #
 #
 # To view serial data for GPS
 apt-get -y install screen
+echo "PiFly Setup: apt-get -y install screen: result" $? >> $logFilePath
 #
 #
+#
+# Hexdump utility
+apt-get -y install hexdump
+echo "PiFly Setup: apt-get -y install screen: result" $? >> $logFilePath
 #
 #  GPS format conversion tool
 apt-get -y install gpsbabel
+echo "PiFly Setup: apt-get -y install gpsbabel: result" $? >> $logFilePath
 #
 #
 # Adafruit PCA9685 Python library
 cd /home/pi/pifly
 git clone https://github.com/adafruit/Adafruit_Python_PCA9685.git
 cd Adafruit_Python_PCA9685
+echo "PiFly Setup: cd Adafruit_Python_PCA9685: result" $? >> $logFilePath
 python setup.py install
+echo "PiFly Setup: python setup.py install: result" $? >> $logFilePath
 # Only servos 8 to 15 are on the PiFly, order is scrambled
+cd /home/pi/pifly
+chown -R pi:pi Adafruit_Python_PCA9685     # because when this script is run with sudo, everything belongs to root
 #
 #
 # Setup a handy alias
@@ -712,7 +735,7 @@ echo ""
 tput setaf 2      # highlight summary text green to make it more attention getting.
 echo "PiFly Setup Script version" $PIFLYSETUPVERSION
 echo "Most software is installed under ~/pifly. These files were changed: /boot/cmdline.txt, /etc/rc.local, and /home/pi/.bashrc"
-echo "Installed software: pifm, nbfm, rpitx, pkt2wave, i2c-tools, gpio, gpio-halt, gpio_alt, scrot, screen, cmake, SoX, and festival"
+echo "Installed software: pifm, nbfm, rpitx, pkt2wave, i2c-tools, gpio, gpio-halt, gpio_alt, scrot, screen, cmake, hexdump, SoX, and festival"
 echo "Installed Python libraries: matplotlib, python-smbus, python3-smbus, build-essential, python-dev, python3-dev, adafruit-pca9685, and RTIMULib2"
 echo "Hardware shutdown can be done by grounding GPIO" $HALTGPIOBIT "using switch SW1"
 echo "USB flash drives will be read-write after re-boot. PWM audio is available on GPIO13 and amplified on connector P4."
