@@ -12,11 +12,11 @@ The PiFly board is designed for drones, high power rocketry, and RC airplanes. T
 
 ```
 cd ~
-git clone htpps://github.com/robertrau/piflySetupScript
+git clone https://github.com/robertrau/piflySetupScript
 cd piflysetupscript
 sudo ./piflysetup.sh
 ```
-
+This install will use about 300MB and take over 30 minutes.
 
 
 **To check install log file**
@@ -30,15 +30,21 @@ cat /var/log/piflyinstalllog.txt
     Inserted USB FLASH Drives are now writable
     Pushbutton Shutdown on GPIO26 (pin 37) for push button SW1 on the PiFly board
     Release of serial ports for SSH and Bluetooth, high speed serial needed for 50Hz update GPS
+    gpsbabel
     nbfm - Narrow Band FM Transmitter, doesn't work on NOOBS 1.92 and later
     rpitx - Multimode FM Transmitter
     Demo144-39MHz.sh - 144.39MHz transmit demo for rpitx
     pifm - FM Transmitter, doesn't work on NOOBS 1.92 and later
     pkt2wave - Converts text packet radio messages to .WAV files
     Sets up audio output on GPIO13 (pin 33)
+    i2ctools
+    Screen
+    cmake
+    hexdump
+    scrot
     festival - text to speech package
     SoX - Audio Resample
-    matplotlib - Plot Library for Python
+    Installed Python libraries: matplotlib, python-smbus, python3-smbus, build-essential, python-dev, python3-dev, adafruit-pca9685, and RTIMULib2
     man page for wiringPi gpio command
       
 **File Description**
@@ -64,6 +70,7 @@ The PiFly hardware and software would not have been possible without the kind ef
     • KM4EFP for pkt2wave to support packet radio
     • Brian Ho for gpio_alt
     • The University of Edinburgh, Centre for Speech Technology Research, for festival speech software
+    • The gpsbabel team
     • The SoX team
     • The matplotlib team
     • The scrot team

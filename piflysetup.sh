@@ -226,7 +226,12 @@
 #      By: Robert S. Rau & Rob F. Rau II
 # Changes: Fixed omissions from log file (python stuff, servo lib...). added hexdump install. dtparam=i2c1_baudrate=400000 isn't working, i2c still running at 66,666Hz. Another try to make Pi Zero work with GPS.
 #
-PIFLYSETUPVERSION=1.43
+# Updated: 7/17/2017
+#    Rev.: 1.44
+#      By: Robert S. Rau & Rob F. Rau II
+# Changes: Added setserial to install. Changed edits to cmdline.txt for GPS serial port. Added text to disk free space report at end. Added raspi-gpio get to logfile at end.
+#
+PIFLYSETUPVERSION=1.44
 #
 # Things to think about
 # 1) Should we set up an email account "PiFlyUser" to make it easier for users to share or report problems?
@@ -402,13 +407,20 @@ fi
 echo "PiFly setup: Starting cmdline.txt editing" >> $logFilePath
 echo "PiFly Setup: cmdline.txt was:" >> $logFilePath
 cat /boot/cmdline.txt >> $logFilePath
-#sed -i.bak -e 's/console=ttyAMA0\,115200 //' -e 's/kgdboc=ttyAMA0,115200 //' -e 's/console=serial0,115200 //' /boot/cmdline.txt
+sed -i.bak -e 's/console=ttyAMA0\,115200 //' /boot/cmdline.txt
+#sed -i.bak -e 's/kgdboc=ttyAMA0,115200 //' /boot/cmdline.txt
+sed -i.bak -e 's/console=serial0,115200 //' /boot/cmdline.txt
 sed -i '/=/ s/$/ dtoverlay=pi3-disable-bt/' /boot/cmdline.txt         # not working     ******************
 echo "PiFly Setup: cmdline.txt update for serial: result" $? >> $logFilePath
 systemctl disable hciuart
 echo "PiFly Setup: systemctl disable hciuart: result" $? >> $logFilePath
 echo "PiFly Setup: cmdline.txt after serial updates:" >> $logFilePath
 cat /boot/cmdline.txt >> $logFilePath
+# also make sure the uart is not disabled in config.txt
+sed -i 's/enable_uart=0/enable_uart=1/' /boot/config.txt
+echo "PiFly Setup: sed -i 's/enable_uart=0/enable_uart=1/' /boot/config.txt: result" $? >> $logFilePath
+sed -i 's/#enable_uart=1/enable_uart=1/' /boot/config.txt
+echo "PiFly Setup: sed -i 's/#enable_uart=1/enable_uart=1/' /boot/config.txt: result" $? >> $logFilePath
 #
 #
 #
@@ -642,6 +654,8 @@ if [ $HIGH_CURRENT_OUT_NOT_FOUND -eq 1 ]; then
 fi
 #
 #
+  echo "PiFly Setup: raspi-gpio get:" >> $logFilePath
+raspi-gpio get  >> $logFilePath
 #
 #
 #
@@ -691,6 +705,11 @@ apt-get -y install gpsbabel
 echo "PiFly Setup: apt-get -y install gpsbabel: result" $? >> $logFilePath
 #
 #
+# setserial serial port configuration/reporting utility
+apt-get -y install setserial
+echo "PiFly Setup: apt-get -y install setserial: result" $? >> $logFilePath
+#
+#
 # Adafruit PCA9685 Python library
 cd /home/pi/pifly
 git clone https://github.com/adafruit/Adafruit_Python_PCA9685.git
@@ -729,13 +748,13 @@ fi
 #
 #
 #
-df -Ph | grep -E '^/dev/root' | awk '{ print $4 " of " $2 }' >> $logFilePath
+df -Ph | grep -E '^/dev/root' | awk '{ "Free disk space: " print $4 "Gigabutes of " $2 }' >> $logFilePath
 echo ""
 echo ""
 tput setaf 2      # highlight summary text green to make it more attention getting.
 echo "PiFly Setup Script version" $PIFLYSETUPVERSION
 echo "Most software is installed under ~/pifly. These files were changed: /boot/cmdline.txt, /etc/rc.local, and /home/pi/.bashrc"
-echo "Installed software: pifm, nbfm, rpitx, pkt2wave, i2c-tools, gpio, gpio-halt, gpio_alt, scrot, screen, cmake, hexdump, SoX, and festival"
+echo "Installed software: pifm, nbfm, rpitx, pkt2wave, i2c-tools, gpio, gpio-halt, gpio_alt, gpsbabel, scrot, screen, cmake, hexdump, setserial, SoX, and festival"
 echo "Installed Python libraries: matplotlib, python-smbus, python3-smbus, build-essential, python-dev, python3-dev, adafruit-pca9685, and RTIMULib2"
 echo "Hardware shutdown can be done by grounding GPIO" $HALTGPIOBIT "using switch SW1"
 echo "USB flash drives will be read-write after re-boot. PWM audio is available on GPIO13 and amplified on connector P4."
