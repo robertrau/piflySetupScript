@@ -231,13 +231,18 @@
 #      By: Robert S. Rau & Rob F. Rau II
 # Changes: Added setserial to install. Changed edits to cmdline.txt for GPS serial port. Added text to disk free space report at end. Added raspi-gpio get to logfile at end.
 #
-PIFLYSETUPVERSION=1.44
+# Updated: 8/4/2017
+#    Rev.: 1.45
+#      By: Robert S. Rau & Rob F. Rau II
+# Changes: Enable camera and installed python-picamera. Added I2C to /etc/modules. enable GPIO HALT at end of script
+#
+PIFLYSETUPVERSION=1.45
 #
 # Things to think about
 # 1) Should we set up an email account "PiFlyUser" to make it easier for users to share or report problems?
 # 2) Should we set up a blog for sharing?
 # 3) Should this script ask for a call sign during setup, install differently if none provided?
-# 4) Should the shutdown button enable be delayed to the very end of the script? -- No, not running until after reboot
+# 4) Should the shutdown button enable be delayed to the very end of the script? -- last thing enabled, all good now
 # 5) Should the end of the script remind the user to set time zone, country, and so on? -- Done
 # 6) Cleanup, remove source and unnecessary files? -- No, there is plenty of space.
 # 7) Need to abort on failure
@@ -247,6 +252,7 @@ PIFLYSETUPVERSION=1.44
 # 11) Need to insert line into gpio-halt code to turn on Shutdown LED D7 on GPIO16 (pin 36) - done
 # 12) Need to figure out how to use pi3-disable-bt.dtbo overlay so Pi Zero-W can be used with GPS. See: https://www.raspberrypi.org/documentation/configuration/uart.md
 # 13) dtparam=i2c1_baudrate=400000 isn't working, i2c still running at 66,666Hz
+# 14) found set_config_var command here:http://iot.technoedu.com/forums/topic/raspicam-solved-how-can-i-enable-the-camera-without-using-raspi-config/  How does it work?
 #
 #
 #
@@ -426,7 +432,12 @@ echo "PiFly Setup: sed -i 's/#enable_uart=1/enable_uart=1/' /boot/config.txt: re
 #
 #
 #
-# Set I2C speed to 400kHz
+# Enable I2C and set I2C speed to 400kHz
+#    snatched from raspi-config
+if ! grep -q "^i2c[-_]dev" /etc/modules; then
+    printf "i2c-dev\n" >> /etc/modules
+  fi
+#
 sed -i '/=/ s/$/ dtparam=i2c1=on dtparam=i2c1_baudrate=400000/' /boot/cmdline.txt
 echo "PiFly Setup: cmdline.txt update for i2c: result" $? >> $logFilePath
 echo "PiFly Setup: cmdline.txt after i2c updates:" >> $logFilePath
@@ -446,6 +457,35 @@ cat /boot/cmdline.txt >> $logFilePath
 #
 # Setup i2s for microphone
 #  add dtparam=i2s=on to cmdline.txt    gpio alt for in should be i2s but out should be gpio for GPS reset
+#
+#
+# Setup camera
+#
+#   with help from
+#     https://raspberrypi.stackexchange.com/questions/10357/enable-camera-without-raspi-config/14400
+#     https://core-electronics.com.au/tutorials/create-an-installer-script-for-raspberry-pi.html
+#
+grep "start_x=1" /boot/config.txt
+if grep "start_x=1" /boot/config.txt
+then
+        exit
+else
+        sed -i "s/start_x=0/start_x=1/g" /boot/config.txt
+fi
+#
+#
+# If a line containing "gpu_mem" exists
+if grep -Fq "gpu_mem" $CONFIG
+then
+	# Replace the line
+	echo "Modifying gpu_mem"
+	sed -i "/gpu_mem/c\gpu_mem=128" $CONFIG
+else
+	# Create the definition
+	echo "gpu_mem not defined. Creating definition"
+	echo "gpu_mem=128" >> $CONFIG
+fi
+#
 #
 #
 ########## 3) install RF transmitters and modulators
@@ -670,8 +710,10 @@ echo "PiFly Setup: apt-getapt-get scrot: result" $? >> $logFilePath
 #
 #
 # Python stuff
-apt-get -y install python-smbus python3-smbus build-essential python-dev python3-dev
+apt-get -y install python-smbus python3-smbus build-essential python-dev python3-dev python-picamera
 echo "PiFly Setup: apt-get -y install python-smbus python3-smbus build-essential python-dev python3-dev: result" $? >> $logFilePath
+#
+#
 #
 # for IMU
 cd /home/pi/pifly
@@ -748,20 +790,23 @@ fi
 #
 #
 #
-df -Ph | grep -E '^/dev/root' | awk '{ "Free disk space: " print $4 "Gigabutes of " $2 }' >> $logFilePath
+df -Ph | grep -E '^/dev/root' | awk '{ print $4 "Gigabytes of " $2 }' >> $logFilePath
 echo ""
 echo ""
 tput setaf 2      # highlight summary text green to make it more attention getting.
 echo "PiFly Setup Script version" $PIFLYSETUPVERSION
 echo "Most software is installed under ~/pifly. These files were changed: /boot/cmdline.txt, /etc/rc.local, and /home/pi/.bashrc"
 echo "Installed software: pifm, nbfm, rpitx, pkt2wave, i2c-tools, gpio, gpio-halt, gpio_alt, gpsbabel, scrot, screen, cmake, hexdump, setserial, SoX, and festival"
-echo "Installed Python libraries: matplotlib, python-smbus, python3-smbus, build-essential, python-dev, python3-dev, adafruit-pca9685, and RTIMULib2"
+echo "Installed Python libraries: python-picamera, matplotlib, python-smbus, python3-smbus, build-essential, python-dev, python3-dev, adafruit-pca9685, and RTIMULib2"
 echo "Hardware shutdown can be done by grounding GPIO" $HALTGPIOBIT "using switch SW1"
 echo "USB flash drives will be read-write after re-boot. PWM audio is available on GPIO13 and amplified on connector P4."
 echo "GPIOs for high current outputs set to output zero. Added smbus (i2c) support to Python. ll alias setup in .bashrc."
 echo " GPS data can be viewed using:  sudo screen /dev/ttyAMA0 9600"
 df -Ph | grep -E '^/dev/root' | awk '{ print $4 " of " $2 }'
 echo ""
+#
 tput setaf 5        # highlight text magenta
-echo "You must re-boot for the changes to take effect. Remember to set country and time zone"
+# enable SW1 to do shutdown
+/usr/local/bin/gpio-halt $HALTGPIOBIT &
+echo "You must re-boot for the changes to take effect, you can use button SW1 for this now. Remember to set country and time zone"
 # 

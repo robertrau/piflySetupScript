@@ -42,6 +42,7 @@ cat /var/log/piflyinstalllog.txt
     cmake
     hexdump
     scrot
+    setserial
     festival - text to speech package
     SoX - Audio Resample
     Installed Python libraries: matplotlib, python-smbus, python3-smbus, build-essential, python-dev, python3-dev, adafruit-pca9685, and RTIMULib2
@@ -51,6 +52,7 @@ cat /var/log/piflyinstalllog.txt
 
     piflysetup.sh				The bash setup script
     Demo144-39MHz.sh			This script takes a text message and converts it to a RF .ft speech file, turns on the RF amplifier and transmits the speech file, then turns off the RF amplifier.
+    TachTestAll.sh				Test the ADT7470 tachometer.
     txoff.sh				Turns off the RF amplifier.
     tx18.sh					Selects GPIO18 as the RF carrier and turns on the RF amplifier.
     tx4.sh					Selects GPIO4 as the RF carrier and turns on the RF amplifier.
