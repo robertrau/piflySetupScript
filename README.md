@@ -62,7 +62,7 @@ cat /var/log/piflyinstalllog.txt
 ## Acknowledgments
 The PiFly hardware and software would not have been possible without the kind efforts of the following.
 
-    • My family for putting up with me spening a pile of money on the PiFly hardware and tons of time over the last year making it real.
+    • My family for putting up with me spending a pile of money on the PiFly hardware and tons of time over the last year making it real.
     • My oldest son, without his efforts and patients I would still be writing the worst code ever and for his work on the PiFly library.
     • The Raspberry Pi organization for taking on a huge effort and providing the world with a succesful learning vehicle.
     • Imperial College Robotics Society for their vision to turn a digital computer into an analog RF modulator.
@@ -156,6 +156,8 @@ The PiFly is designed to be mated to a Raspberry Pi Zero, but is compatible with
 	https://www.raspberrypi.org/products/raspberry-pi-3-model-b/
 	https://www.pine64.org/?product=pine-a64-board-2gb
 	http://www.orangepi.org/orangepiplus2e/
+	http://www.opossom.com/english/products-development_boards-opos6ul_dev.html
+	https://shop.technexion.com/pico-pi-imx7.html
 
 All the connections to the host computer through the 40 pin connector have a small capacitor to prevent any RF ingress to the Host since the PiFly has a RF transmitter.
 

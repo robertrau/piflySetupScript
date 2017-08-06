@@ -234,9 +234,14 @@
 # Updated: 8/4/2017
 #    Rev.: 1.45
 #      By: Robert S. Rau & Rob F. Rau II
-# Changes: Enable camera and installed python-picamera. Added I2C to /etc/modules. enable GPIO HALT at end of script
+# Changes: Enable camera and installed python-picamera. Added I2C to /etc/modules. Enable GPIO HALT at end of script.
 #
-PIFLYSETUPVERSION=1.45
+# Updated: 8/6/2017
+#    Rev.: 1.46
+#      By: Robert S. Rau & Rob F. Rau II
+# Changes: Commented out camera stuff, script was hanging. added & updated diagnostic echo stuff.
+#
+PIFLYSETUPVERSION=1.46
 #
 # Things to think about
 # 1) Should we set up an email account "PiFlyUser" to make it easier for users to share or report problems?
@@ -395,7 +400,7 @@ if [ $GPIO_HALT_NOT_FOUND -eq 1 ]; then
   GPIOHALTRES=$((10*$GPIOHALTRES))
   echo "exit 0" >> /etc/rc.local
   GPIOHALTRES=$(($?+$GPIOHALTRES))
-  echo "PiFly Setup: gpio-halt" $HALTGPIOBIT "&: result" $GPIOHALTRES >> $logFilePath
+  echo "PiFly Setup: /etc/rc.local editing for gpio-halt" $HALTGPIOBIT "&: result" $GPIOHALTRES >> $logFilePath
   cd /home/pi/pifly
   chown -R pi:pi Adafruit-GPIO-Halt     # because when this script is run with sudo, everything belongs to root
 else
@@ -410,7 +415,7 @@ fi
 # Edit cmdline.txt so serial port is available for GPS. This disables bluetooth on Raspberry Pi 3 and Raspberry Pi Zero W boards.
 # found https://openenergymonitor.org/forum-archive/node/12311.html
 # See https://github.com/raspberrypi/linux/blob/rpi-4.1.y/arch/arm/boot/dts/overlays/pi3-disable-bt-overlay.dts
-echo "PiFly setup: Starting cmdline.txt editing" >> $logFilePath
+echo "PiFly setup: Starting Serial setup" >> $logFilePath
 echo "PiFly Setup: cmdline.txt was:" >> $logFilePath
 cat /boot/cmdline.txt >> $logFilePath
 sed -i.bak -e 's/console=ttyAMA0\,115200 //' /boot/cmdline.txt
@@ -434,6 +439,7 @@ echo "PiFly Setup: sed -i 's/#enable_uart=1/enable_uart=1/' /boot/config.txt: re
 #
 # Enable I2C and set I2C speed to 400kHz
 #    snatched from raspi-config
+echo "PiFly Setup: Starting I2C setup" >> $logFilePath
 if ! grep -q "^i2c[-_]dev" /etc/modules; then
     printf "i2c-dev\n" >> /etc/modules
   fi
@@ -446,8 +452,9 @@ cat /boot/cmdline.txt >> $logFilePath
 #
 #
 #
-# SPI speed
+# SPI 
 # https://raspberrypi.stackexchange.com/questions/699/what-spi-frequencies-does-raspberry-pi-support
+echo "PiFly Setup: Starting SPI setup" >> $logFilePath
 sed -i '/=/ s/$/ dtparam=spi=on/' /boot/cmdline.txt
 echo "PiFly Setup: cmdline.txt update for SPI: result" $? >> $logFilePath
 echo "PiFly Setup: cmdline.txt after SPI updates:" >> $logFilePath
@@ -465,26 +472,27 @@ cat /boot/cmdline.txt >> $logFilePath
 #     https://raspberrypi.stackexchange.com/questions/10357/enable-camera-without-raspi-config/14400
 #     https://core-electronics.com.au/tutorials/create-an-installer-script-for-raspberry-pi.html
 #
-grep "start_x=1" /boot/config.txt
-if grep "start_x=1" /boot/config.txt
-then
-        exit
-else
-        sed -i "s/start_x=0/start_x=1/g" /boot/config.txt
-fi
+echo "PiFly Setup: Starting camera setup" >> $logFilePath
+#grep "start_x=1" /boot/config.txt
+#if grep "start_x=1" /boot/config.txt
+#then
+#        echo "PiFly Setup: Camera already installed" >> $logFilePath
+#else
+#        sed -i "s/start_x=0/start_x=1/g" /boot/config.txt
+#fi
 #
 #
 # If a line containing "gpu_mem" exists
-if grep -Fq "gpu_mem" $CONFIG
-then
+#if grep -Fq "gpu_mem" $CONFIG
+#then
 	# Replace the line
-	echo "Modifying gpu_mem"
-	sed -i "/gpu_mem/c\gpu_mem=128" $CONFIG
-else
+#	echo "PiFly Setup: Modifying gpu_mem"
+#	sed -i "/gpu_mem/c\gpu_mem=128" $CONFIG
+#else
 	# Create the definition
-	echo "gpu_mem not defined. Creating definition"
-	echo "gpu_mem=128" >> $CONFIG
-fi
+#	echo "PiFly Setup: gpu_mem not defined. Creating definition"
+#	echo "gpu_mem=128" >> $CONFIG
+#fi
 #
 #
 #
