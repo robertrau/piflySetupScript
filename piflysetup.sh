@@ -241,7 +241,12 @@
 #      By: Robert S. Rau & Rob F. Rau II
 # Changes: Commented out camera stuff, script was hanging. added & updated diagnostic echo stuff.
 #
-PIFLYSETUPVERSION=1.46
+# Updated: 8/6/2017
+#    Rev.: 1.47
+#      By: Robert S. Rau & Rob F. Rau II
+# Changes: I2C speed now at 200000Hz
+#
+PIFLYSETUPVERSION=1.47
 #
 # Things to think about
 # 1) Should we set up an email account "PiFlyUser" to make it easier for users to share or report problems?
@@ -437,14 +442,14 @@ echo "PiFly Setup: sed -i 's/#enable_uart=1/enable_uart=1/' /boot/config.txt: re
 #
 #
 #
-# Enable I2C and set I2C speed to 400kHz
+# Enable I2C and set I2C speed to 200kHz
 #    snatched from raspi-config
 echo "PiFly Setup: Starting I2C setup" >> $logFilePath
 if ! grep -q "^i2c[-_]dev" /etc/modules; then
     printf "i2c-dev\n" >> /etc/modules
   fi
 #
-sed -i '/=/ s/$/ dtparam=i2c1=on dtparam=i2c1_baudrate=400000/' /boot/cmdline.txt
+sed -i '/=/ s/$/ dtparam=i2c1=on dtparam=i2c1_baudrate=200000/' /boot/cmdline.txt
 echo "PiFly Setup: cmdline.txt update for i2c: result" $? >> $logFilePath
 echo "PiFly Setup: cmdline.txt after i2c updates:" >> $logFilePath
 cat /boot/cmdline.txt >> $logFilePath
