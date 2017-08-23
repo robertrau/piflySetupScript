@@ -256,7 +256,12 @@
 #      By: Robert S. Rau & Rob F. Rau II
 # Changes: Improved df formating and added pre and post install in log file. Added boot message in run log file. Changed Adafruit-GPIO-Halt to my forked version. Restored UART to working version.
 #
-PIFLYSETUPVERSION=1.49
+# Updated: 8/23/2017
+#    Rev.: 1.50
+#      By: Robert S. Rau & Rob F. Rau II
+# Changes: Also remove console=tty1 from cmdline.txt. Fixed disk usage and time errors to log file. Fixed RTIMULib demo installs.
+#
+PIFLYSETUPVERSION=1.50
 #
 # Things to think about
 # 1) Should we set up an email account "PiFlyUser" to make it easier for users to share or report problems?
@@ -271,7 +276,7 @@ PIFLYSETUPVERSION=1.49
 # 10) text2wave can't make a very long file with -F 48000 (needed for rpitx) for some reason, we now must use -F 6000 and SoX to change
 # 11) Need to insert line into gpio-halt code to turn on Shutdown LED D7 on GPIO16 (pin 36) - done
 # 12) Need to figure out how to use pi3-disable-bt.dtbo overlay so Pi Zero-W can be used with GPS. See: https://www.raspberrypi.org/documentation/configuration/uart.md
-# 13) dtparam=i2c1_baudrate=400000 isn't working, i2c still running at 66,666Hz
+# 13) dtparam=i2c1_baudrate=400000 isn't working, i2c still running at 66,666Hz for i2cdetect and flips from 100kHz to and from 66kHz in Python.
 # 14) Found set_config_var command here:http://iot.technoedu.com/forums/topic/raspicam-solved-how-can-i-enable-the-camera-without-using-raspi-config/  How does it work?
 # 15) If halt request is low when Linux comes up (like when running from Pi +5 and no battery connected with W5 closed), the shutdown command is never issued or recognized. The GPIO interrupt is edge sensitive, not level sensitive.
 #
@@ -296,7 +301,6 @@ logFilePath=/var/log/piflyinstalllog.txt
 runlogFilePath=/var/log/piflyrunlog.txt
 echo "" >> $logFilePath
 echo "Install started " $(date +"%A,  %B %e, %Y, %X %Z") >> $logFilePath
-df -Ph | grep -E '^/dev/root' | awk '{ print $4 " of " $2 }' >> $logFilePath
 mydirectory=$(pwd)     #  remember what directory I started in
 #
 ########## 0) Pre run checks. Check that we are running with root permissions, we have a internet connection and log who we are and what is connected.
@@ -330,7 +334,7 @@ echo "" >> $logFilePath
 echo "PiFly Setup: lsmod:" >> $logFilePath
 lsmod >> $logFilePath
 #
-df -PBMB | grep -E '^/dev/root' | awk '{ "Free SD card space before install " print $4 " of " $2 }' >> $logFilePath
+df -PBMB | grep -E '^/dev/root' | awk '{ print "PiFly Setup: Free SD card space before install " $4 " of " $2 }' >> $logFilePath
 #
 #
 #
@@ -361,7 +365,7 @@ apt-get update
 echo "PiFly Setup: apt-get update: result" $? >> $logFilePath
 #
 #
-echo "New install on" $(date +'%A,  %B %e, %Y, %X %Z') >> $runlogFilePath
+echo "New install of piflysetup version " $PIFLYSETUPVERSION " on" $(date +'%A,  %B %e, %Y, %X %Z') >> $runlogFilePath
 #
 #
 #
@@ -453,6 +457,7 @@ cat /boot/cmdline.txt >> $logFilePath
 sed -i.bak -e 's/console=ttyAMA0\,115200 //' /boot/cmdline.txt
 sed -i.bak -e 's/kgdboc=ttyAMA0,115200 //' /boot/cmdline.txt
 sed -i.bak -e 's/console=serial0,115200 //' /boot/cmdline.txt
+sed -i.bak -e 's/console=tty1 //' /boot/cmdline.txt
 sed -i '/=/ s/$/ dtoverlay=pi3-disable-bt/' /boot/cmdline.txt         # not working     ******************
 echo "PiFly Setup: cmdline.txt update for serial: result" $? >> $logFilePath
 #systemctl disable hciuart
@@ -758,12 +763,12 @@ cd /home/pi/pifly
 apt-get -y install qt4-dev-tools qt4-bin-dbg qt4-qtconfig qt4-default
 #
 if [ -d RTIMULib2 ]; then
-  echo "PiFly Setup: RTIMULib2 directory already exists: result" $? >> $logFilePath
   cd RTIMULib2
+  echo "PiFly Setup: RTIMULib2 directory already exists, cd RTIMULib2: result" $? >> $logFilePath
   git pull
 else
-  echo "PiFly Setup: git clone http://github.com/RTIMULib/RTIMULib2: result" $? >> $logFilePath
   git clone http://github.com/RTIMULib/RTIMULib2
+  echo "PiFly Setup: git clone http://github.com/RTIMULib/RTIMULib2: result" $? >> $logFilePath
   cd RTIMULib2
 fi
 chown -R pi:pi /home/pi/pifly/RTIMULib2     # because when this script is run with sudo, everything belongs to root
@@ -777,11 +782,56 @@ make
 make install
 #
 # build demos
-cd /home/pi/pifly/RTIMULib2
-cd Linux
+cd /home/pi/pifly/RTIMULib2/Linux/RTIMULibDemo
 mkdir build
 cd build
 cmake ../
+make
+make install
+#
+cd /home/pi/pifly/RTIMULib2/Linux/RTIMULibCal
+mkdir build
+cd build
+cmake ../
+make
+make install
+#
+cd /home/pi/pifly/RTIMULib2/Linux/RTIMULibDemoGL
+mkdir build
+cd build
+cmake ../
+make
+make install
+#
+cd /home/pi/pifly/RTIMULib2/Linux/RTIMULibDrive
+mkdir build
+cd build
+cmake ../
+make
+make install
+#
+cd /home/pi/pifly/RTIMULib2/Linux/RTIMULibDrive10
+mkdir build
+cd build
+cmake ../
+make
+make install
+#
+cd /home/pi/pifly/RTIMULib2/Linux/RTIMULibDrive11
+mkdir build
+cd build
+cmake ../
+make
+make install
+#
+cd /home/pi/pifly/RTIMULib2/Linux/RTIMULibGL
+mkdir build
+cd build
+cmake ../
+make
+make install
+#
+cd /home/pi/pifly/RTIMULib2/Linux/RTIMULibvrpn
 make
 make install
 #
@@ -826,10 +876,6 @@ apt-get -y install screen
 echo "PiFly Setup: apt-get -y install screen: result" $? >> $logFilePath
 #
 #
-#
-# Hexdump utility
-apt-get -y install hexdump
-echo "PiFly Setup: apt-get -y install screen: result" $? >> $logFilePath
 #
 #  GPS format conversion tool
 apt-get -y install gpsbabel
@@ -879,8 +925,6 @@ fi
 #
 #
 #
-df -Ph | grep -E '^/dev/root' | awk '{ print $4 "Gigabytes of " $2 }' >> $logFilePath
-echo "PiFly Setup: Install complete" >> $logFilePath
 echo "" >> $logFilePath
 echo "" >> $logFilePath
 echo ""
@@ -894,8 +938,9 @@ echo "Hardware shutdown can be done by grounding GPIO" $HALTGPIOBIT "using switc
 echo "USB flash drives will be read-write after re-boot. PWM audio is available on GPIO13 and amplified on connector P4."
 echo "GPIOs for high current outputs set to output zero. Added smbus (i2c) support to Python. ll alias setup in .bashrc."
 echo " GPS data can be viewed using:  sudo screen /dev/ttyAMA0 9600"
-df -PBMB | grep -E '^/dev/root' | awk '{ "Free SD card space " print $4 " of " $2 }'
-df -PBMB | grep -E '^/dev/root' | awk '{ "Free SD card space after install " print $4 " of " $2 }' >> $logFilePath
+df -PBMB | grep -E '^/dev/root' | awk '{ print "Free SD card space " $4 " of " $2 }'
+df -PBMB | grep -E '^/dev/root' | awk '{ print "PiFly Setup: Free SD card space after install " $4 " of " $2 }' >> $logFilePath
+echo "PiFly Setup: Install complete " $(date +"%A,  %B %e, %Y, %X %Z") >> $logFilePath
 echo ""
 #
 tput setaf 5        # highlight text magenta
