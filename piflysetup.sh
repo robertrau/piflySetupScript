@@ -251,7 +251,12 @@
 #      By: Robert S. Rau & Rob F. Rau II
 # Changes: Added RTIMULib install. added support for a run log file. Added Organization comments.
 #
-PIFLYSETUPVERSION=1.48
+# Updated: 8/23/2017
+#    Rev.: 1.49
+#      By: Robert S. Rau & Rob F. Rau II
+# Changes: Improved df formating and added pre and post install in log file. Added boot message in run log file. Changed Adafruit-GPIO-Halt to my forked version. Restored UART to working version.
+#
+PIFLYSETUPVERSION=1.49
 #
 # Things to think about
 # 1) Should we set up an email account "PiFlyUser" to make it easier for users to share or report problems?
@@ -268,7 +273,7 @@ PIFLYSETUPVERSION=1.48
 # 12) Need to figure out how to use pi3-disable-bt.dtbo overlay so Pi Zero-W can be used with GPS. See: https://www.raspberrypi.org/documentation/configuration/uart.md
 # 13) dtparam=i2c1_baudrate=400000 isn't working, i2c still running at 66,666Hz
 # 14) Found set_config_var command here:http://iot.technoedu.com/forums/topic/raspicam-solved-how-can-i-enable-the-camera-without-using-raspi-config/  How does it work?
-# 15) If halt request is low when Linux comes up, the shutdown command is never issued or recognized.
+# 15) If halt request is low when Linux comes up (like when running from Pi +5 and no battery connected with W5 closed), the shutdown command is never issued or recognized. The GPIO interrupt is edge sensitive, not level sensitive.
 #
 #
 #
@@ -290,7 +295,7 @@ PIFLYSETUPVERSION=1.48
 logFilePath=/var/log/piflyinstalllog.txt
 runlogFilePath=/var/log/piflyrunlog.txt
 echo "" >> $logFilePath
-date +"%A,  %B %e, %Y, %X %Z" >> $logFilePath
+echo "Install started " $(date +"%A,  %B %e, %Y, %X %Z") >> $logFilePath
 df -Ph | grep -E '^/dev/root' | awk '{ print $4 " of " $2 }' >> $logFilePath
 mydirectory=$(pwd)     #  remember what directory I started in
 #
@@ -325,6 +330,7 @@ echo "" >> $logFilePath
 echo "PiFly Setup: lsmod:" >> $logFilePath
 lsmod >> $logFilePath
 #
+df -PBMB | grep -E '^/dev/root' | awk '{ "Free SD card space before install " print $4 " of " $2 }' >> $logFilePath
 #
 #
 #
@@ -363,7 +369,7 @@ echo "New install on" $(date +'%A,  %B %e, %Y, %X %Z') >> $runlogFilePath
 ########## 2) Set up Raspberry Pi configuration
 # see:https://www.raspberrypi.org/forums/viewtopic.php?f=44&t=130619
 # for SPI see (see DMA note at bottom):https://www.raspberrypi.org/documentation/hardware/raspberrypi/spi/README.md
-echo "PiFly setup: StartingRaspberry Pi configuration"
+echo "PiFly setup: Starting Raspberry Pi configuration"
 #
 apt-get -y install git
 echo "PiFly Setup: apt-get install git: result" $? >> $logFilePath
@@ -402,15 +408,11 @@ if [ -d Adafruit-GPIO-Halt ]; then
   git pull
   echo "PiFly Setup: git pull of Adafruit_GPIO_Halt: result" $? >> $logFilePath
 else
-  git clone https://github.com/adafruit/Adafruit-GPIO-Halt
+  git clone https://github.com/robertrau/Adafruit-GPIO-Halt
   echo "PiFly Setup: git clone of Adafruit_GPIO_Halt: result" $? >> $logFilePath
   cd Adafruit-GPIO-Halt
 fi
 #
-# Insert line into gpio-halt code to turn on Shutdown LED D7 on GPIO16 (pin 36)
-sed -i.bak -e '/(void)system("shutdown -h now");/i (void)system("gpio -g write 16 1");' /home/pi/pifly/Adafruit-GPIO-Halt/gpio-halt.c
-# Insert line into gpio-halt code to log shutdown by GPIO16 in run log
-sed -i.bak -e '/(void)system("shutdown -h now");/i (void)system("echo "Pifly GPIO16 shutdown at" $(date +'%A,  %B %e, %Y, %X %Z') >> $runlogFilePath");' /home/pi/pifly/Adafruit-GPIO-Halt/gpio-halt.c
 #
 #
 make
@@ -432,7 +434,7 @@ if [ $GPIO_HALT_NOT_FOUND -eq 1 ]; then
   GPIOHALTRES=$(($?+$GPIOHALTRES))
   echo "PiFly Setup: /etc/rc.local editing for gpio-halt" $HALTGPIOBIT "&: result" $GPIOHALTRES >> $logFilePath
   cd /home/pi/pifly
-  chown -R pi:pi Adafruit-GPIO-Halt     # because when this script is run with sudo, everything belongs to root
+  chown -R pi:pi Adafruit-GPIO-Halt     # because when this script is run with sudo, everything belongs to root, must chown
 else
   echo "PiFly Setup: gpio-halt already in rc.local" >> $logFilePath
 fi
@@ -449,12 +451,12 @@ echo "PiFly setup: Starting Serial setup" >> $logFilePath
 echo "PiFly Setup: cmdline.txt was:" >> $logFilePath
 cat /boot/cmdline.txt >> $logFilePath
 sed -i.bak -e 's/console=ttyAMA0\,115200 //' /boot/cmdline.txt
-#sed -i.bak -e 's/kgdboc=ttyAMA0,115200 //' /boot/cmdline.txt
+sed -i.bak -e 's/kgdboc=ttyAMA0,115200 //' /boot/cmdline.txt
 sed -i.bak -e 's/console=serial0,115200 //' /boot/cmdline.txt
 sed -i '/=/ s/$/ dtoverlay=pi3-disable-bt/' /boot/cmdline.txt         # not working     ******************
 echo "PiFly Setup: cmdline.txt update for serial: result" $? >> $logFilePath
-systemctl disable hciuart
-echo "PiFly Setup: systemctl disable hciuart: result" $? >> $logFilePath
+#systemctl disable hciuart
+#echo "PiFly Setup: systemctl disable hciuart: result" $? >> $logFilePath
 echo "PiFly Setup: cmdline.txt after serial updates:" >> $logFilePath
 cat /boot/cmdline.txt >> $logFilePath
 # also make sure the uart is not disabled in config.txt
@@ -523,6 +525,15 @@ echo "PiFly Setup: Starting camera setup" >> $logFilePath
 #	echo "PiFly Setup: gpu_mem not defined. Creating definition"
 #	echo "gpu_mem=128" >> $CONFIG
 #fi
+#
+#
+#
+#
+# update run log on startup
+sed -i.bak -e "s/exit 0//" /etc/rc.local
+echo 'echo "PiFly booted on " $(date +"%A,  %B %e, %Y, %X %Z") >> $runlogFilePath' >> /etc/rc.local
+echo "exit 0" >> /etc/rc.local
+#
 #
 #
 #
@@ -797,12 +808,6 @@ echo "PiFly Setup: apt-get -y install python-smbus python3-smbus build-essential
 #
 #
 #
-# for IMU
-cd /home/pi/pifly
-git clone https://github.com/richards-tech/RTIMULib2.git
-echo "PiFly Setup: git clone https://github.com/richards-tech/RTIMULib2.git: result" $? >> $logFilePath
-#
-#
 # Install I2C tools
 echo "PiFly setup: Starting i2c-tools setup" >> $logFilePath
 apt-get -y install i2c-tools
@@ -815,6 +820,8 @@ echo "PiFly Setup: apt-get -y install cmake: result" $? >> $logFilePath
 #
 #
 # To view serial data for GPS
+# to use:
+#    screen /dev/ttyAMA0 9600
 apt-get -y install screen
 echo "PiFly Setup: apt-get -y install screen: result" $? >> $logFilePath
 #
@@ -887,11 +894,14 @@ echo "Hardware shutdown can be done by grounding GPIO" $HALTGPIOBIT "using switc
 echo "USB flash drives will be read-write after re-boot. PWM audio is available on GPIO13 and amplified on connector P4."
 echo "GPIOs for high current outputs set to output zero. Added smbus (i2c) support to Python. ll alias setup in .bashrc."
 echo " GPS data can be viewed using:  sudo screen /dev/ttyAMA0 9600"
-df -Ph | grep -E '^/dev/root' | awk '{ print $4 " of " $2 }'
+df -PBMB | grep -E '^/dev/root' | awk '{ "Free SD card space " print $4 " of " $2 }'
+df -PBMB | grep -E '^/dev/root' | awk '{ "Free SD card space after install " print $4 " of " $2 }' >> $logFilePath
 echo ""
 #
 tput setaf 5        # highlight text magenta
 # enable SW1 to do shutdown
 /usr/local/bin/gpio-halt $HALTGPIOBIT &
 echo "You must re-boot for the changes to take effect, you can use button SW1 for this now. Remember to set country and time zone"
+echo "Install complete " $(date +"%A,  %B %e, %Y, %X %Z") >> $runlogFilePath
+
 # 
