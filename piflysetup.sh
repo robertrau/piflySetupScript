@@ -246,7 +246,12 @@
 #      By: Robert S. Rau & Rob F. Rau II
 # Changes: I2C speed now at 200000Hz
 #
-PIFLYSETUPVERSION=1.47
+# Updated: 8/22/2017
+#    Rev.: 1.48
+#      By: Robert S. Rau & Rob F. Rau II
+# Changes: Added RTIMULib install. added support for a run log file. Added Organization comments.
+#
+PIFLYSETUPVERSION=1.48
 #
 # Things to think about
 # 1) Should we set up an email account "PiFlyUser" to make it easier for users to share or report problems?
@@ -262,17 +267,34 @@ PIFLYSETUPVERSION=1.47
 # 11) Need to insert line into gpio-halt code to turn on Shutdown LED D7 on GPIO16 (pin 36) - done
 # 12) Need to figure out how to use pi3-disable-bt.dtbo overlay so Pi Zero-W can be used with GPS. See: https://www.raspberrypi.org/documentation/configuration/uart.md
 # 13) dtparam=i2c1_baudrate=400000 isn't working, i2c still running at 66,666Hz
-# 14) found set_config_var command here:http://iot.technoedu.com/forums/topic/raspicam-solved-how-can-i-enable-the-camera-without-using-raspi-config/  How does it work?
+# 14) Found set_config_var command here:http://iot.technoedu.com/forums/topic/raspicam-solved-how-can-i-enable-the-camera-without-using-raspi-config/  How does it work?
+# 15) If halt request is low when Linux comes up, the shutdown command is never issued or recognized.
+#
+#
+#
+#
+# Organization
+# 0) Pre run checks. Check that we are running with root permissions, we have a internet connection and log who we are and what is connected.
+# 1) Setup directory structure
+# 2) Set up Raspberry Pi configuration
+# 3) install RF transmitters and modulators
+# 4) install audio support
+# 5) Graphics for Video downlink support
+# 6) High current/GPS/RF/LED output support
+# 7) IMU (MPS9250) support
+# 8) Developer tools
+#
 #
 #
 #
 logFilePath=/var/log/piflyinstalllog.txt
+runlogFilePath=/var/log/piflyrunlog.txt
 echo "" >> $logFilePath
 date +"%A,  %B %e, %Y, %X %Z" >> $logFilePath
 df -Ph | grep -E '^/dev/root' | awk '{ print $4 " of " $2 }' >> $logFilePath
 mydirectory=$(pwd)     #  remember what directory I started in
 #
-########## 0) Check that we are running with root permissions, we have a internet connection and log who we are and what is connected.
+########## 0) Pre run checks. Check that we are running with root permissions, we have a internet connection and log who we are and what is connected.
 if [[ $EUID > 0 ]]; then
 	echo "Please run using: sudo ./piflysetup.sh"
     echo "PiFly Setup: Aborted, not in sudo." >> $logFilePath
@@ -333,6 +355,7 @@ apt-get update
 echo "PiFly Setup: apt-get update: result" $? >> $logFilePath
 #
 #
+echo "New install on" $(date +'%A,  %B %e, %Y, %X %Z') >> $runlogFilePath
 #
 #
 #
@@ -386,6 +409,8 @@ fi
 #
 # Insert line into gpio-halt code to turn on Shutdown LED D7 on GPIO16 (pin 36)
 sed -i.bak -e '/(void)system("shutdown -h now");/i (void)system("gpio -g write 16 1");' /home/pi/pifly/Adafruit-GPIO-Halt/gpio-halt.c
+# Insert line into gpio-halt code to log shutdown by GPIO16 in run log
+sed -i.bak -e '/(void)system("shutdown -h now");/i (void)system("echo "Pifly GPIO16 shutdown at" $(date +'%A,  %B %e, %Y, %X %Z') >> $runlogFilePath");' /home/pi/pifly/Adafruit-GPIO-Halt/gpio-halt.c
 #
 #
 make
@@ -713,7 +738,51 @@ raspi-gpio get  >> $logFilePath
 #
 #
 #
-########## 7) Developer tools
+########## 7) IMU (MPS9250) support
+#
+#
+# First, Qt dependancies for demo programs
+#
+cd /home/pi/pifly
+apt-get -y install qt4-dev-tools qt4-bin-dbg qt4-qtconfig qt4-default
+#
+if [ -d RTIMULib2 ]; then
+  echo "PiFly Setup: RTIMULib2 directory already exists: result" $? >> $logFilePath
+  cd RTIMULib2
+  git pull
+else
+  echo "PiFly Setup: git clone http://github.com/RTIMULib/RTIMULib2: result" $? >> $logFilePath
+  git clone http://github.com/RTIMULib/RTIMULib2
+  cd RTIMULib2
+fi
+chown -R pi:pi /home/pi/pifly/RTIMULib2     # because when this script is run with sudo, everything belongs to root
+#
+# build lib
+cd RTIMULib
+mkdir build
+cd build
+cmake ../
+make
+make install
+#
+# build demos
+cd /home/pi/pifly/RTIMULib2
+cd Linux
+mkdir build
+cd build
+cmake ../
+make
+make install
+#
+#
+#
+#
+#
+#
+#
+#
+#
+########## 8) Developer tools
 #
 # Screen capture tool
 echo "PiFly setup: Starting scrot setup" >> $logFilePath
@@ -804,6 +873,9 @@ fi
 #
 #
 df -Ph | grep -E '^/dev/root' | awk '{ print $4 "Gigabytes of " $2 }' >> $logFilePath
+echo "PiFly Setup: Install complete" >> $logFilePath
+echo "" >> $logFilePath
+echo "" >> $logFilePath
 echo ""
 echo ""
 tput setaf 2      # highlight summary text green to make it more attention getting.
