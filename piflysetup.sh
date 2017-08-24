@@ -276,7 +276,12 @@
 #      By: Robert S. Rau & Rob F. Rau II
 # Changes: Install cmake before needing it!
 #
-PIFLYSETUPVERSION=1.53
+# Updated: 8/24/2017
+#    Rev.: 1.54
+#      By: Robert S. Rau & Rob F. Rau II
+# Changes: Added GPIO pull ups to interrupt, shutdown, and bus inputs.
+#
+PIFLYSETUPVERSION=1.54
 #
 # Things to think about
 # 1) Should we set up an email account "PiFlyUser" to make it easier for users to share or report problems?
@@ -450,6 +455,7 @@ if [ $GPIO_HALT_NOT_FOUND -eq 1 ]; then
   echo "PiFly Setup: gpio-halt not found in rc.local" >> $logFilePath
   sed -i.bak -e "s/exit 0//" /etc/rc.local
   GPIOHALTRES=$(($?*10))
+  echo "gpio mode" $HALTGPIOBIT "up" >> /etc/rc.local
   echo "/usr/local/bin/gpio-halt" $HALTGPIOBIT "&" >> /etc/rc.local
   GPIOHALTRES=$(($?+$GPIOHALTRES))
   GPIOHALTRES=$((10*$GPIOHALTRES))
@@ -519,7 +525,7 @@ cat /boot/cmdline.txt >> $logFilePath
 #
 #
 # Setup i2s for microphone
-#  add dtparam=i2s=on to cmdline.txt    gpio alt for in should be i2s but out should be gpio for GPS reset
+#  add dtparam=i2s=on to cmdline.txt    gpio alt for i2s input should be i2s-in but i2s output should be normal gpio output for GPS reset
 #
 #
 # Setup camera
@@ -689,7 +695,7 @@ if [ $GPIO_ALT_NOT_FOUND -eq 1 ]; then
   gpio_alt -p 13 -f 0
   echo "PiFly Setup: gpio_alt -p 13 -f 0: result" $? >> $logFilePath
   sed -i.bak -e "/exit 0/i gpio_alt -p 13 -f 0" /etc/rc.local
-  echo "PiFly Setup: sed -i.bak -e '/exit 0/i gpio_alt -p 13 -f 0':" >> $logFilePath
+  echo "PiFly Setup: sed -i.bak -e '/exit 0/i gpio_alt -p 13 -f 0': result" $? >> $logFilePath
 else
   echo "PiFly Setup: gpio_alt already in rc.local" >> $logFilePath
 fi
@@ -761,7 +767,13 @@ if [ $HIGH_CURRENT_OUT_NOT_FOUND -eq 1 ]; then
   echo "gpio -g write 6 0   # LED & Radio RF amplifier off" >> /etc/rc.local
   echo "gpio -g write 21 1   # release GPS reset" >> /etc/rc.local
   echo "gpio -g mode 5 in   # interrupt input" >> /etc/rc.local
+  echo "gpio mode 5 up   # interrupt input" >> /etc/rc.local
   echo "gpio -g mode 12 in   # interrupt input" >> /etc/rc.local
+  echo "gpio mode 12 up   # interrupt input" >> /etc/rc.local
+  echo "gpio mode 2 up   # i2c input/output" >> /etc/rc.local
+  echo "gpio mode 3 up   # i2c input/output" >> /etc/rc.local
+  echo "gpio mode 9 up   # SPI MISO input" >> /etc/rc.local
+  echo "gpio mode 20 up   # I2S input" >> /etc/rc.local
   echo "exit 0" >> /etc/rc.local
   echo "PiFly Setup: High current/GPS/RF/LED setup added to rc.local" >> $logFilePath
 fi
@@ -931,7 +943,7 @@ echo ""
 # enable SW1 to do shutdown
 /usr/local/bin/gpio-halt $HALTGPIOBIT &
 tput setaf 5        # highlight text magenta
-echo "You must re-boot for the changes to take effect, you can use button SW1 for this now. Remember to set country and time zone"
+echo "You must re-boot for the changes to take effect, you can use button SW1 for this now. Remember to set country, time zone and enable i2c and spi in preferences."
 tput setaf 7        # back to normal
 echo "Install complete " $(date +"%A,  %B %e, %Y, %X %Z") >> $runlogFilePath
 
