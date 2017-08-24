@@ -266,6 +266,11 @@
 #      By: Robert S. Rau & Rob F. Rau II
 # Changes: Fixed RTIMULib install. Another whack at I2C, added dtparam=i2c_arm=on to cmdline.
 #
+# Updated: 8/24/2017
+#    Rev.: 1.52
+#      By: Robert S. Rau & Rob F. Rau II
+# Changes: Fixed RTIMULib install, again, and added diagnostics to log file. Added note at beginning to change Scroll-back lines.
+#
 PIFLYSETUPVERSION=1.51
 #
 # Things to think about
@@ -283,7 +288,7 @@ PIFLYSETUPVERSION=1.51
 # 12) Need to figure out how to use pi3-disable-bt.dtbo overlay so Pi Zero-W can be used with GPS. See: https://www.raspberrypi.org/documentation/configuration/uart.md
 # 13) dtparam=i2c1_baudrate=400000 isn't working, i2c still running at 66,666Hz for i2cdetect and flips from 100kHz to and from 66kHz in Python.
 # 14) Found set_config_var command here:http://iot.technoedu.com/forums/topic/raspicam-solved-how-can-i-enable-the-camera-without-using-raspi-config/  How does it work?
-# 15) If halt request is low when Linux comes up (like when running from Pi +5 and no battery connected with W5 closed), the shutdown command is never issued or recognized. The GPIO interrupt is edge sensitive, not level sensitive.
+# 15) If halt request is low when Linux comes up (like when running from USB +5 on Pi and no battery connected with W5 closed), the shutdown command is never issued or recognized. The GPIO interrupt is edge sensitive, not level sensitive.
 #
 #
 #
@@ -309,6 +314,10 @@ echo "Install started " $(date +"%A,  %B %e, %Y, %X %Z") >> $logFilePath
 mydirectory=$(pwd)     #  remember what directory I started in
 #
 ########## 0) Pre run checks. Check that we are running with root permissions, we have a internet connection and log who we are and what is connected.
+tput setaf 5        # highlight text magenta
+echo "Set Terminal Scroll-back lines to 4000 to record whole install"
+tput setaf 7        # return text to normal
+#
 if [[ $EUID > 0 ]]; then
 	echo "Please run using: sudo ./piflysetup.sh"
     echo "PiFly Setup: Aborted, not in sudo." >> $logFilePath
@@ -541,7 +550,7 @@ echo "PiFly Setup: Starting camera setup" >> $logFilePath
 #
 # update run log on startup
 sed -i.bak -e "s/exit 0//" /etc/rc.local
-echo 'echo "PiFly booted on " $(date +"%A,  %B %e, %Y, %X %Z") >> $runlogFilePath' >> /etc/rc.local
+echo 'echo "PiFly booted on " $(date +"%A,  %B %e, %Y, %X %Z") >> /var/log/piflyrunlog.txt' >> /etc/rc.local
 echo "exit 0" >> /etc/rc.local
 #
 #
@@ -776,27 +785,29 @@ else
   echo "PiFly Setup: git clone http://github.com/RTIMULib/RTIMULib2: result" $? >> $logFilePath
   cd RTIMULib2
 fi
-chown -R pi:pi /home/pi/pifly/RTIMULib2     # because when this script is run with sudo, everything belongs to root
+#chown -R pi:pi /home/pi/pifly/RTIMULib2     # because when this script is run with sudo, everything belongs to root
 #
 # build lib
+echo "PiFly Setup: Starting RTIMULib library install" >> $logFilePath
 cd RTIMULib
 mkdir build
-chown -R pi:pi build
+#chown -R pi:pi build
 cd build
-cmake ../
-make
-make install
+cmake ../ &>> $logFilePath
+make &>> $logFilePath
+make install &>> $logFilePath
 #
 # build demos
+echo "PiFly Setup: Starting RTIMULib Demos install" >> $logFilePath
 cd /home/pi/pifly/RTIMULib2/Linux/
 mkdir build
-chown -R pi:pi /home/pi/pifly/RTIMULib2/
+#chown -R pi:pi /home/pi/pifly/RTIMULib2/
 cd build
-cmake ../
-chown -R pi:pi /home/pi/pifly/RTIMULib2/
-make
-chown -R pi:pi /home/pi/pifly/RTIMULib2/
-make install
+cmake ../ &>> $logFilePath
+#chown -R pi:pi /home/pi/pifly/RTIMULib2/
+make &>> $logFilePath
+#chown -R pi:pi /home/pi/pifly/RTIMULib2/
+make install &>> $logFilePath
 ldconfig
 #
 #
@@ -898,7 +909,7 @@ echo ""
 tput setaf 2      # highlight summary text green to make it more attention getting.
 echo "PiFly Setup Script version" $PIFLYSETUPVERSION
 echo "Most software is installed under ~/pifly. These files were changed: /boot/cmdline.txt, /etc/rc.local, and /home/pi/.bashrc"
-echo "Installed software: pifm, nbfm, rpitx, pkt2wave, i2c-tools, gpio, gpio-halt, gpio_alt, gpsbabel, scrot, screen, cmake, hexdump, setserial, SoX, and festival"
+echo "Installed software: pifm, nbfm, rpitx, pkt2wave, i2c-tools, gpio, gpio-halt, gpio_alt, gpsbabel, scrot, screen, cmake, RTIMULib, setserial, SoX, and festival"
 echo "Installed Python libraries: python-picamera, matplotlib, python-smbus, python3-smbus, build-essential, python-dev, python3-dev, adafruit-pca9685, and RTIMULib2"
 echo "Hardware shutdown can be done by grounding GPIO" $HALTGPIOBIT "using switch SW1"
 echo "USB flash drives will be read-write after re-boot. PWM audio is available on GPIO13 and amplified on connector P4."
@@ -909,10 +920,11 @@ df -PBMB | grep -E '^/dev/root' | awk '{ print "PiFly Setup: Free SD card space 
 echo "PiFly Setup: Install complete " $(date +"%A,  %B %e, %Y, %X %Z") >> $logFilePath
 echo ""
 #
-tput setaf 5        # highlight text magenta
 # enable SW1 to do shutdown
 /usr/local/bin/gpio-halt $HALTGPIOBIT &
+tput setaf 5        # highlight text magenta
 echo "You must re-boot for the changes to take effect, you can use button SW1 for this now. Remember to set country and time zone"
+tput setaf 7        # back to normal
 echo "Install complete " $(date +"%A,  %B %e, %Y, %X %Z") >> $runlogFilePath
 
 # 
