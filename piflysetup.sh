@@ -271,7 +271,12 @@
 #      By: Robert S. Rau & Rob F. Rau II
 # Changes: Fixed RTIMULib install, again, and added diagnostics to log file. Added note at beginning to change Scroll-back lines.
 #
-PIFLYSETUPVERSION=1.51
+# Updated: 8/24/2017
+#    Rev.: 1.53
+#      By: Robert S. Rau & Rob F. Rau II
+# Changes: Install cmake before needing it!
+#
+PIFLYSETUPVERSION=1.53
 #
 # Things to think about
 # 1) Should we set up an email account "PiFlyUser" to make it easier for users to share or report problems?
@@ -771,7 +776,15 @@ raspi-gpio get  >> $logFilePath
 ########## 7) IMU (MPS9250) support
 #
 #
-# First, Qt dependancies for demo programs
+#
+#
+# First, tools to build all this...
+# to build libpifly and RTIMULib
+apt-get -y install cmake
+echo "PiFly Setup: apt-get -y install cmake: result" $? >> $logFilePath
+#
+#
+# Second, Qt dependancies for demo programs
 #
 cd /home/pi/pifly
 apt-get -y install qt4-dev-tools qt4-bin-dbg qt4-qtconfig qt4-default
@@ -839,11 +852,6 @@ echo "PiFly Setup: apt-get -y install python-smbus python3-smbus build-essential
 echo "PiFly setup: Starting i2c-tools setup" >> $logFilePath
 apt-get -y install i2c-tools
 echo "PiFly Setup: apt-get install i2c-tools: result" $? >> $logFilePath
-#
-#
-# to build libpifly
-apt-get -y install cmake
-echo "PiFly Setup: apt-get -y install cmake: result" $? >> $logFilePath
 #
 #
 # To view serial data for GPS
