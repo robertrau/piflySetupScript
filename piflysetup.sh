@@ -259,9 +259,14 @@
 # Updated: 8/23/2017
 #    Rev.: 1.50
 #      By: Robert S. Rau & Rob F. Rau II
-# Changes: Also remove console=tty1 from cmdline.txt. Fixed disk usage and time errors to log file. Fixed RTIMULib demo installs.
+# Changes: Also remove console=tty1 from cmdline.txt. Fixed disk usage and time errors to log file. Fixed RTIMULib demo installs. Added piflysetup version to run log.
 #
-PIFLYSETUPVERSION=1.50
+# Updated: 8/23/2017
+#    Rev.: 1.51
+#      By: Robert S. Rau & Rob F. Rau II
+# Changes: Fixed RTIMULib install. Another whack at I2C, added dtparam=i2c_arm=on to cmdline.
+#
+PIFLYSETUPVERSION=1.51
 #
 # Things to think about
 # 1) Should we set up an email account "PiFlyUser" to make it easier for users to share or report problems?
@@ -481,7 +486,7 @@ if ! grep -q "^i2c[-_]dev" /etc/modules; then
     printf "i2c-dev\n" >> /etc/modules
   fi
 #
-sed -i '/=/ s/$/ dtparam=i2c1=on dtparam=i2c1_baudrate=200000/' /boot/cmdline.txt
+sed -i '/=/ s/$/ dtparam=i2c_arm=on dtparam=i2c1=on dtparam=i2c1_baudrate=200000/' /boot/cmdline.txt
 echo "PiFly Setup: cmdline.txt update for i2c: result" $? >> $logFilePath
 echo "PiFly Setup: cmdline.txt after i2c updates:" >> $logFilePath
 cat /boot/cmdline.txt >> $logFilePath
@@ -776,66 +781,27 @@ chown -R pi:pi /home/pi/pifly/RTIMULib2     # because when this script is run wi
 # build lib
 cd RTIMULib
 mkdir build
+chown -R pi:pi build
 cd build
 cmake ../
 make
 make install
 #
 # build demos
-cd /home/pi/pifly/RTIMULib2/Linux/RTIMULibDemo
+cd /home/pi/pifly/RTIMULib2/Linux/
 mkdir build
+chown -R pi:pi /home/pi/pifly/RTIMULib2/
 cd build
 cmake ../
+chown -R pi:pi /home/pi/pifly/RTIMULib2/
 make
+chown -R pi:pi /home/pi/pifly/RTIMULib2/
 make install
-#
-cd /home/pi/pifly/RTIMULib2/Linux/RTIMULibCal
-mkdir build
-cd build
-cmake ../
-make
-make install
-#
-cd /home/pi/pifly/RTIMULib2/Linux/RTIMULibDemoGL
-mkdir build
-cd build
-cmake ../
-make
-make install
-#
-cd /home/pi/pifly/RTIMULib2/Linux/RTIMULibDrive
-mkdir build
-cd build
-cmake ../
-make
-make install
-#
-cd /home/pi/pifly/RTIMULib2/Linux/RTIMULibDrive10
-mkdir build
-cd build
-cmake ../
-make
-make install
-#
-cd /home/pi/pifly/RTIMULib2/Linux/RTIMULibDrive11
-mkdir build
-cd build
-cmake ../
-make
-make install
-#
-cd /home/pi/pifly/RTIMULib2/Linux/RTIMULibGL
-mkdir build
-cd build
-cmake ../
-make
-make install
-#
-cd /home/pi/pifly/RTIMULib2/Linux/RTIMULibvrpn
-make
-make install
+ldconfig
 #
 #
+#
+chown -R pi:pi /home/pi/pifly/RTIMULib2     # because when this script is run with sudo, everything belongs to root
 #
 #
 #
