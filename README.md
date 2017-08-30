@@ -56,20 +56,20 @@ cat /var/log/piflyinstalllog.txt
     txoff.sh				Turns off the RF amplifier.
     tx18.sh					Selects GPIO18 as the RF carrier and turns on the RF amplifier.
     tx4.sh					Selects GPIO4 as the RF carrier and turns on the RF amplifier.
-    HighCurrentTest.sh		Turns on each high current output.
-    SPItest.sh		Reads A/D channels 6 (temperature), 7 (keypad), and 15 (high current output voltage).
-    ServoTest		Exercises the 8 servo outputs.
+    HighCurrentTest.sh			Turns on each high current output.
+    SPItest.sh				Reads A/D channels 6 (temperature), 7 (keypad), and 15 (high current output voltage).
+    ServoTest				Exercises the 8 servo outputs.
     11-media-by-label-auto-mount.rules	Rules for USB FLASH drive to be writable.
     
 **Installed Demos & Software to demonstrate hardware functionallity**
 
-    screen /dev/ttyAMA0 9600				View GPS output.
+    screen /dev/ttyAMA0 9600		View GPS output.
     RTIMULibDemoGL				Graphic Accelerometer/Gyro demo.
     /home/pi/pifly/rpitx/Demo144-39MHz.sh	Edit CALL SIGN text first. Sends text to speech message on 144.390MHz
-    TachTestAll.sh			Tests the four tachometer inputs.
-    SPItest.sh			Reads A/D channels 6 (temperature), 7 (keypad), and 15 (high current output voltage).
-    HighCurrentTest.sh		Turns on each or the four high current output.
-    ServoTest		Exercises the 8 servo outputs.
+    TachTestAll.sh				Tests the four tachometer inputs.
+    SPItest.sh				Reads A/D channels 6 (temperature), 7 (keypad), and 15 (high current output voltage).
+    HighCurrentTest.sh			Turns on each or the four high current output.
+    ServoTest				Exercises the 8 servo outputs.
 
     
     
