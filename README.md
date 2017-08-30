@@ -16,7 +16,7 @@ git clone https://github.com/robertrau/piflySetupScript
 cd piflysetupscript
 sudo ./piflysetup.sh
 ```
-This install will use about 300MB and take over 30 minutes.
+This install will use about 1GB and take over 45 minutes with a Raspberry Pi Zero.
 
 
 **To check install log file**
@@ -40,7 +40,7 @@ cat /var/log/piflyinstalllog.txt
     i2ctools
     Screen
     cmake
-    hexdump
+    RTIMULib with Qt tools
     scrot
     setserial
     festival - text to speech package
@@ -56,13 +56,30 @@ cat /var/log/piflyinstalllog.txt
     txoff.sh				Turns off the RF amplifier.
     tx18.sh					Selects GPIO18 as the RF carrier and turns on the RF amplifier.
     tx4.sh					Selects GPIO4 as the RF carrier and turns on the RF amplifier.
-    11-media-by-label-auto-mount.rules	Rules for USB FLASH drive to be writable
+    HighCurrentTest.sh		Turns on each high current output.
+    SPItest.sh		Reads A/D channels 6 (temperature), 7 (keypad), and 15 (high current output voltage).
+    ServoTest		Exercises the 8 servo outputs.
+    11-media-by-label-auto-mount.rules	Rules for USB FLASH drive to be writable.
+    
+**Installed Demos & Software to demonstrate hardware functionallity**
+
+    screen /dev/ttyAMA0 9600				View GPS output.
+    RTIMULibDemoGL				Graphic Accelerometer/Gyro demo.
+    /home/pi/pifly/rpitx/Demo144-39MHz.sh	Edit CALL SIGN text first. Sends text to speech message on 144.390MHz
+    TachTestAll.sh			Tests the four tachometer inputs.
+    SPItest.sh			Reads A/D channels 6 (temperature), 7 (keypad), and 15 (high current output voltage).
+    HighCurrentTest.sh		Turns on each or the four high current output.
+    ServoTest		Exercises the 8 servo outputs.
+
+    
+    
+
 
 
 ## Acknowledgments
 The PiFly hardware and software would not have been possible without the kind efforts of the following.
 
-    • My family for putting up with me spending a pile of money on the PiFly hardware and tons of time over the last year making it real.
+    • My family for putting up with me spending a pile of money on the PiFly hardware and tons of time over the last 16 months making it real.
     • My oldest son, without his efforts and patients I would still be writing the worst code ever and for his work on the PiFly library.
     • The Raspberry Pi organization for taking on a huge effort and providing the world with a succesful learning vehicle.
     • Imperial College Robotics Society for their vision to turn a digital computer into an analog RF modulator.
@@ -256,7 +273,7 @@ The board may be assembled without the SkyTraq GPS and have the serial port avai
 
 
 #### Analog to Digital Converter
-The PiFly has a 16 channel A/D converter. The design is compatible with 8, 10, and 12 bit versions of the A/D converter. The default build is with the 10 bit version. The A/D driver should always read the converter so the data is left justified, putting DO-11 (bit position from the data sheet), the MSB, in the most significant bit of the processors register. The math will assume the binary point is just to the left of the most significant bit. This will make all data returned from the A/D converter a fraction from 0.0000 to, but not including, 1.0000. This will be true for any of the available resolutions. In the table below, <A/D> is always this fraction from 0.0000 to 1.0000.
+The PiFly has a 16 channel A/D converter. The design is compatible with 8, 10, and 12 bit versions of the A/D converter. The default build is with the 10 bit version. In the table below, \<A/D> is always this fraction from 0.0000 to 1.0000.
 
 	Channel		Measurement			Conversion to Engineering Units
 	0		AnalogCH1, J7 pin 3		Application dependent
@@ -290,7 +307,7 @@ The PiFly board has a dedicated keypad connector. This connector supports a anal
 #### High G linear accelerometer
 The PiFly board has an accelerometer for high acceleration application like rocketry. This is the same sensor used by Altus Metrum in their TeleMega board, the MMA6555. See:
 http://altusmetrum.org/TeleMega/
-The device is mounted so –X acceleration is in the direction of the USB connector end of the board. This device is on the higher speed SPI bus so rapidly changing data can be captured accurately. The SPI address is SPI_ADDR1..0=0x1.
+The device is mounted so –X acceleration is in the direction of the USB connector end of the board. This device is on the higher speed SPI bus so rapidly changing data can be captured accurately. The SPI address is SPI_ADDR1..0=0x1. Version two of this board will use a ST H3LIS331DLTR because the NXP part is going end of life.
 
 
 

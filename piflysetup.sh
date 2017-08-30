@@ -281,6 +281,11 @@
 #      By: Robert S. Rau & Rob F. Rau II
 # Changes: Added GPIO pull ups to interrupt, shutdown, and bus inputs.
 #
+# Updated: 8/25/2017
+#    Rev.: 1.55
+#      By: Robert S. Rau & Rob F. Rau II
+# Changes: Added RTC support.
+#
 PIFLYSETUPVERSION=1.54
 #
 # Things to think about
@@ -299,6 +304,7 @@ PIFLYSETUPVERSION=1.54
 # 13) dtparam=i2c1_baudrate=400000 isn't working, i2c still running at 66,666Hz for i2cdetect and flips from 100kHz to and from 66kHz in Python.
 # 14) Found set_config_var command here:http://iot.technoedu.com/forums/topic/raspicam-solved-how-can-i-enable-the-camera-without-using-raspi-config/  How does it work?
 # 15) If halt request is low when Linux comes up (like when running from USB +5 on Pi and no battery connected with W5 closed), the shutdown command is never issued or recognized. The GPIO interrupt is edge sensitive, not level sensitive.
+# 16) must look at RTC   https://www.raspberrypi.org/forums/viewtopic.php?f=63&t=161133      and     https://www.raspberrypi.org/forums/viewtopic.php?f=37&t=59808
 #
 #
 #
@@ -312,7 +318,8 @@ PIFLYSETUPVERSION=1.54
 # 5) Graphics for Video downlink support
 # 6) High current/GPS/RF/LED output support
 # 7) IMU (MPS9250) support
-# 8) Developer tools
+# 8) RTC support
+# 9) Developer tools
 #
 #
 #
@@ -325,7 +332,7 @@ mydirectory=$(pwd)     #  remember what directory I started in
 #
 ########## 0) Pre run checks. Check that we are running with root permissions, we have a internet connection and log who we are and what is connected.
 tput setaf 5        # highlight text magenta
-echo "Set Terminal Scroll-back lines to 4000 to record whole install"
+echo "Set Terminal Scroll-back lines to 4500 to record whole install. Set terminal window to full width of screen for best readability."
 tput setaf 7        # return text to normal
 #
 if [[ $EUID > 0 ]]; then
@@ -443,9 +450,9 @@ fi
 #
 #
 #
-make
+make &>> $logFilePath
 echo "PiFly Setup: make of Adafruit_GPIO_Halt: result" $? >> $logFilePath
-make install
+make install &>> $logFilePath
 echo "PiFly Setup: make install of Adafruit_GPIO_Halt: result" $? >> $logFilePath
 #
 cat /etc/rc.local | grep -q gpio-halt
@@ -841,11 +848,25 @@ chown -R pi:pi /home/pi/pifly/RTIMULib2     # because when this script is run wi
 #
 #
 #
+########## 8) RTC support
+#
+sed -i '/=/ s/$/ dtoverlay=i2c-rtc,ds3231/' /boot/cmdline.txt
+#edit the /lib/udev/hwclock-set file (sudo nano /lib/udev/hwclock-set) and "comment out" the following lines ("comment out" means put a # at the beginning of each of the lines, so they become comments and are ignored by the system)
+#
+# if [ -e /run/systemd/system ] ; then
+# exit 0
+# fi
+#
+#so they become:
+#
+# #if [ -e /run/systemd/system ] ; then
+# # exit 0
+# #fi
 #
 #
 #
 #
-########## 8) Developer tools
+########## 9) Developer tools
 #
 # Screen capture tool
 echo "PiFly setup: Starting scrot setup" >> $logFilePath
