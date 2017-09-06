@@ -70,6 +70,7 @@ cat /var/log/piflyinstalllog.txt
     SPItest.sh				Reads A/D channels 6 (temperature), 7 (keypad), and 15 (high current output voltage).
     HighCurrentTest.sh			Turns on each or the four high current output.
     ServoTest				Exercises the 8 servo outputs.
+    aplay ~/pifly/pifm/sounds/star-wars.wav	To test the audio output on connector P4.
 
     
     

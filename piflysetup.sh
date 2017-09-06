@@ -286,7 +286,12 @@
 #      By: Robert S. Rau & Rob F. Rau II
 # Changes: Added RTC support.
 #
-PIFLYSETUPVERSION=1.54
+# Updated: 9/5/2017
+#    Rev.: 1.56
+#      By: Robert S. Rau & Rob F. Rau II
+# Changes: Added pifly version of RTIMULib.ini
+#
+PIFLYSETUPVERSION=1.56
 #
 # Things to think about
 # 1) Should we set up an email account "PiFlyUser" to make it easier for users to share or report problems?
@@ -798,7 +803,7 @@ raspi-gpio get  >> $logFilePath
 #
 #
 # First, tools to build all this...
-# to build libpifly and RTIMULib
+# for libpifly and RTIMULib
 apt-get -y install cmake
 echo "PiFly Setup: apt-get -y install cmake: result" $? >> $logFilePath
 #
@@ -847,6 +852,9 @@ ldconfig
 chown -R pi:pi /home/pi/pifly/RTIMULib2     # because when this script is run with sudo, everything belongs to root
 #
 #
+#
+# Now copy the version of RTIMULib.ini for the pifly
+cp /home/pi/piflySetupScript/RTIMULib.ini /home/pi/pifly/RTIMULib2/Linux/build/RTIMULibGL/CMakeFiles
 #
 ########## 8) RTC support
 #
