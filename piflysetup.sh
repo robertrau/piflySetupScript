@@ -1,5 +1,6 @@
 #!/bin/bash
-# This script takes a fresh Raspberry Pi Zero NOOBS 2.3.0 install (No other installations!) and sets up the PiFly development environment
+# This script takes a fresh Raspberry Pi Zero Bullseye install with desktop and recommended software (No other installations!)
+#  and sets up the PiFly development/operational environment
 # See www.rau-deaver.org/Project_PiFly.html
 #
 # Written: 3/26/2017
@@ -291,7 +292,22 @@
 #      By: Robert S. Rau & Rob F. Rau II
 # Changes: Added pifly version of RTIMULib.ini
 #
-PIFLYSETUPVERSION=1.56
+# Updated: 3/22/2018
+#    Rev.: 1.57
+#      By: Robert S. Rau
+# Changes: Added starting directory and who to log file, moved logfile stuff to after sudo check
+#
+# Updated: 8/19/2018
+#    Rev.: 1.58
+#      By: Robert S. Rau
+# Changes: Commented out "make USB drives writable" since newer Raspians now do it
+#
+# Updated: 3/28/2022
+#    Rev.: 1.59
+#      By: Robert S. Rau
+# Changes: Update for Bullseye version of Raspian
+#
+PIFLYSETUPVERSION=1.59
 #
 # Things to think about
 # 1) Should we set up an email account "PiFlyUser" to make it easier for users to share or report problems?
@@ -329,10 +345,6 @@ PIFLYSETUPVERSION=1.56
 #
 #
 #
-logFilePath=/var/log/piflyinstalllog.txt
-runlogFilePath=/var/log/piflyrunlog.txt
-echo "" >> $logFilePath
-echo "Install started " $(date +"%A,  %B %e, %Y, %X %Z") >> $logFilePath
 mydirectory=$(pwd)     #  remember what directory I started in
 #
 ########## 0) Pre run checks. Check that we are running with root permissions, we have a internet connection and log who we are and what is connected.
@@ -342,13 +354,16 @@ tput setaf 7        # return text to normal
 #
 if [[ $EUID > 0 ]]; then
 	echo "Please run using: sudo ./piflysetup.sh"
-    echo "PiFly Setup: Aborted, not in sudo." >> $logFilePath
+    sudo echo "PiFly Setup: Aborted, not in sudo." $(date +"%A,  %B %e, %Y, %X %Z") >> $logFilePath
     exit
 fi
+logFilePath=/var/log/piflyinstalllog.txt
+runlogFilePath=/var/log/piflyrunlog.txt
 echo "" >> $logFilePath
+echo "Install started " $(date +"%A,  %B %e, %Y, %X %Z") >> $logFilePath
 echo "PiFly Setup: Script version" $PIFLYSETUPVERSION >> $logFilePath
-echo "PiFly Setup: Start Run in sudo" >> $logFilePath
-date >> $logFilePath
+echo "PiFly Setup: ran from directory:" $mydirectory >> $logFilePath
+whoami >> $logFilePath
 ping -c 1 8.8.8.8
 if [[ $? > 0 ]]; then
     echo ""
@@ -404,36 +419,17 @@ echo "PiFly Setup: apt-get update: result" $? >> $logFilePath
 echo "New install of piflysetup version " $PIFLYSETUPVERSION " on" $(date +'%A,  %B %e, %Y, %X %Z') >> $runlogFilePath
 #
 #
-#
+# Clock summary added 3/28/2022
+echo " " >> $logFilePath
+echo "Clock summary" >> $logFilePath
+cat /sys/kernel/debug/clk/clk_summary >> $logFilePath
+echo " " >> $logFilePath
 #
 ########## 2) Set up Raspberry Pi configuration
 # see:https://www.raspberrypi.org/forums/viewtopic.php?f=44&t=130619
 # for SPI see (see DMA note at bottom):https://www.raspberrypi.org/documentation/hardware/raspberrypi/spi/README.md
 echo "PiFly setup: Starting Raspberry Pi configuration"
 #
-apt-get -y install git
-echo "PiFly Setup: apt-get install git: result" $? >> $logFilePath
-#
-#
-#
-#
-#
-# Make USB drive writeable
-# Add rule for mounting USB flash drives as writable
-# https://www.axllent.org/docs/view/auto-mounting-usb-storage/
-echo "PiFly Setup: Setting up USB drives to be writable"
-cp $mydirectory/11-media-by-label-auto-mount.rules /etc/udev/rules.d/
-echo "PiFly Setup: USB drive setup: cp $mydirectory/11-media-by-label-auto-mount.rules /etc/udev/rules.d/: result" $? >> $logFilePath
-udevadm control --reload-rules
-echo "PiFly Setup: USB drive setup: udevadm control --reload-rules: result" $? >> $logFilePath
-#
-#
-#
-#
-#
-#
-# Make TV output secondary to HDMI output (I have read this is the default, but not so in practice)
-#I don't know how to do this. I have made one that ONLY uses TV output..useless!
 #
 #
 # shutdown support
@@ -538,7 +534,7 @@ cat /boot/cmdline.txt >> $logFilePath
 #
 # Setup i2s for microphone
 #  add dtparam=i2s=on to cmdline.txt    gpio alt for i2s input should be i2s-in but i2s output should be normal gpio output for GPS reset
-#
+# See: https://learn.adafruit.com/adafruit-i2s-mems-microphone-breakout/raspberry-pi-wiring-and-test
 #
 # Setup camera
 #
@@ -546,27 +542,6 @@ cat /boot/cmdline.txt >> $logFilePath
 #     https://raspberrypi.stackexchange.com/questions/10357/enable-camera-without-raspi-config/14400
 #     https://core-electronics.com.au/tutorials/create-an-installer-script-for-raspberry-pi.html
 #
-echo "PiFly Setup: Starting camera setup" >> $logFilePath
-#grep "start_x=1" /boot/config.txt
-#if grep "start_x=1" /boot/config.txt
-#then
-#        echo "PiFly Setup: Camera already installed" >> $logFilePath
-#else
-#        sed -i "s/start_x=0/start_x=1/g" /boot/config.txt
-#fi
-#
-#
-# If a line containing "gpu_mem" exists
-#if grep -Fq "gpu_mem" $CONFIG
-#then
-	# Replace the line
-#	echo "PiFly Setup: Modifying gpu_mem"
-#	sed -i "/gpu_mem/c\gpu_mem=128" $CONFIG
-#else
-	# Create the definition
-#	echo "PiFly Setup: gpu_mem not defined. Creating definition"
-#	echo "gpu_mem=128" >> $CONFIG
-#fi
 #
 #
 #
@@ -596,7 +571,7 @@ fi
 chmod +x TX-CPUTemp.sh
 echo "PiFly Setup: chmod +x TX-CPUTemp.sh: result" $? >> $logFilePath
 echo "PiFly Setup: Starting gcc -O3 -lm -std=gnu99 -o nbfm nbfm.c &> $logFilePath" >> $logFilePath
-gcc -O3 -lm -std=gnu99 -o nbfm nbfm.c &>> $logFilePath                 # changed from -std=c99 to -std=gnu99, and -o3 to -O3
+gcc -O3 -std=gnu99 -o nbfm nbfm.c -lm &>> $logFilePath                 # changed from -std=c99 to -std=gnu99, and -o3 to -O3. 3/28/2022 moved -lm to end for Bullseye
 echo "PiFly Setup: gcc -O3 -lm -std=gnu99 -o nbfm nbfm.c &>> $logFilePath: result" $? >> $logFilePath
 cd /home/pi/pifly
 chown -R pi:pi NBFM     # because when this script is run with sudo, everything belongs to root
@@ -658,10 +633,6 @@ chmod +x pkt2wave
 chown pi:pi pkt2wave     # because when this script is run with sudo, everything belongs to root
 #
 #
-#
-#  slow scan TV
-# will add later
-#https://www.element14.com/community/community/raspberry-pi/raspberrypi_projects/blog/2014/01/27/pi-noir-and-catch-santa-challenge--the-dutch-way
 #
 #
 #
