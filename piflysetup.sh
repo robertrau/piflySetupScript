@@ -307,7 +307,17 @@
 #      By: Robert S. Rau
 # Changes: Update for Bullseye version of Raspian
 #
-PIFLYSETUPVERSION=1.59
+# Updated: 3/29/2022
+#    Rev.: 1.60
+#      By: Robert S. Rau
+# Changes: removed SOX, python-matplotlib. added install cutecom
+#
+# Updated: 9/4/2023
+#    Rev.: 1.61
+#      By: Robert S. Rau
+# Changes: Updated gpio shutdown and enabling i2c, i2s, and spi. switched from apt-get to apt.
+#
+PIFLYSETUPVERSION=1.61
 #
 # Things to think about
 # 1) Should we set up an email account "PiFlyUser" to make it easier for users to share or report problems?
@@ -412,8 +422,8 @@ cd /home/pi/pifly
 #
 #
 #
-apt-get update
-echo "PiFly Setup: apt-get update: result" $? >> $logFilePath
+apt update
+echo "PiFly Setup: apt update: result" $? >> $logFilePath
 #
 #
 echo "New install of piflysetup version " $PIFLYSETUPVERSION " on" $(date +'%A,  %B %e, %Y, %X %Z') >> $runlogFilePath
@@ -432,53 +442,26 @@ echo "PiFly setup: Starting Raspberry Pi configuration"
 #
 #
 #
-# shutdown support
-# http://www.recantha.co.uk/blog/?p=13999
-#
+#######################################
+# Shutdown stuff: 2023: all this is now handled by the Linux device tree. See:
+#   https://raspberrypi.stackexchange.com/questions/139767/detect-shutdown-via-gpio
+#   About half way down the page of: https://www.raspberrypi.com/documentation/computers/configuration.html#part1.1
+#   https://raspberrypi.stackexchange.com/questions/137493/raspberry-pi-gpio-shutdown-reboot-options
+#   https://forums.raspberrypi.com/viewtopic.php?t=310269
+#   https://raspberrypi.stackexchange.com/questions/77905/raspberry-pi-3-model-b-dtoverlay-gpio-shutdown
 # HALTGPIOBIT selects the GPIO port (BCM number, not pin number)
 HALTGPIOBIT=26
-echo "PiFly setup: Starting push button halt setup" >> $logFilePath
-cd /home/pi/pifly
-if [ -d Adafruit-GPIO-Halt ]; then
-  cd Adafruit-GPIO-Halt
-  git pull
-  echo "PiFly Setup: git pull of Adafruit_GPIO_Halt: result" $? >> $logFilePath
-else
-  git clone https://github.com/robertrau/Adafruit-GPIO-Halt
-  echo "PiFly Setup: git clone of Adafruit_GPIO_Halt: result" $? >> $logFilePath
-  cd Adafruit-GPIO-Halt
-fi
-#
-#
-#
-make &>> $logFilePath
-echo "PiFly Setup: make of Adafruit_GPIO_Halt: result" $? >> $logFilePath
-make install &>> $logFilePath
-echo "PiFly Setup: make install of Adafruit_GPIO_Halt: result" $? >> $logFilePath
-#
-cat /etc/rc.local | grep -q gpio-halt
-GPIO_HALT_NOT_FOUND=$?
-if [ $GPIO_HALT_NOT_FOUND -eq 1 ]; then
-#    **** These next lines add gpio-halt... to end of rc.local before exit 0 line. They also combine the error codes to one number (just for fun)
-  echo "PiFly Setup: gpio-halt not found in rc.local" >> $logFilePath
-  sed -i.bak -e "s/exit 0//" /etc/rc.local
-  GPIOHALTRES=$(($?*10))
-  echo "gpio mode" $HALTGPIOBIT "up" >> /etc/rc.local
-  echo "/usr/local/bin/gpio-halt" $HALTGPIOBIT "&" >> /etc/rc.local
-  GPIOHALTRES=$(($?+$GPIOHALTRES))
-  GPIOHALTRES=$((10*$GPIOHALTRES))
-  echo "exit 0" >> /etc/rc.local
-  GPIOHALTRES=$(($?+$GPIOHALTRES))
-  echo "PiFly Setup: /etc/rc.local editing for gpio-halt" $HALTGPIOBIT "&: result" $GPIOHALTRES >> $logFilePath
-  cd /home/pi/pifly
-  chown -R pi:pi Adafruit-GPIO-Halt     # because when this script is run with sudo, everything belongs to root, must chown
-else
-  echo "PiFly Setup: gpio-halt already in rc.local" >> $logFilePath
-fi
+echo "dtoverlay=gpio-shutdown,gpio_pin="$HALTGPIOBIT",active_low=1,gpio_pull=up,debounce=1000"  >> /boot/config.txt
 #
 #
 # Enable I2c, SPI, I2S.
 # see  http://raspberrypi.stackexchange.com/questions/14229/how-can-i-enable-the-camera-without-using-raspi-config
+echo "PiFly setup: Enabeling i2c, i2s, spi in config.txt" >> $logFilePath
+sed -i.bak -e 's/#dtparam=i2c_arm=on/dtparam=i2c_arm=on/' /boot/config.txt  #  enable i2c for several sensors
+sed -i.bak -e 's/#dtparam=i2s=on/dtparam=i2s=on/' /boot/config.txt  #  enable i2s for microphone
+sed -i.bak -e 's/#dtparam=spi=on/dtparam=spi=on/' /boot/config.txt  #  enable spi
+echo "dtparam=i2c1=on"  >> /boot/config.txt
+echo "dtparam=i2c1_baudrate=200000"  >> /boot/config.txt
 #
 #
 # Edit cmdline.txt so serial port is available for GPS. This disables bluetooth on Raspberry Pi 3 and Raspberry Pi Zero W boards.
@@ -487,23 +470,24 @@ fi
 echo "PiFly setup: Starting Serial setup" >> $logFilePath
 echo "PiFly Setup: cmdline.txt was:" >> $logFilePath
 cat /boot/cmdline.txt >> $logFilePath
-sed -i.bak -e 's/console=ttyAMA0\,115200 //' /boot/cmdline.txt
-sed -i.bak -e 's/kgdboc=ttyAMA0,115200 //' /boot/cmdline.txt
-sed -i.bak -e 's/console=serial0,115200 //' /boot/cmdline.txt
-sed -i.bak -e 's/console=tty1 //' /boot/cmdline.txt
-sed -i '/=/ s/$/ dtoverlay=pi3-disable-bt/' /boot/cmdline.txt         # not working     ******************
+sed -i.bak -e 's/console=ttyAMA0\,115200 //' /boot/cmdline.txt  # remove Linux console access to our GPS serial port
+sed -i.bak -e 's/kgdboc=ttyAMA0,115200 //' /boot/cmdline.txt    # remove Linux console access to our GPS serial port
+sed -i.bak -e 's/console=serial0,115200 //' /boot/cmdline.txt   # remove Linux console access to our GPS serial port
+sed -i.bak -e 's/console=tty1 //' /boot/cmdline.txt             # remove Linux console access to our GPS serial port
 echo "PiFly Setup: cmdline.txt update for serial: result" $? >> $logFilePath
 #systemctl disable hciuart
 #echo "PiFly Setup: systemctl disable hciuart: result" $? >> $logFilePath
 echo "PiFly Setup: cmdline.txt after serial updates:" >> $logFilePath
 cat /boot/cmdline.txt >> $logFilePath
 # also make sure the uart is not disabled in config.txt
-sed -i 's/enable_uart=0/enable_uart=1/' /boot/config.txt
-echo "PiFly Setup: sed -i 's/enable_uart=0/enable_uart=1/' /boot/config.txt: result" $? >> $logFilePath
-sed -i 's/#enable_uart=1/enable_uart=1/' /boot/config.txt
-echo "PiFly Setup: sed -i 's/#enable_uart=1/enable_uart=1/' /boot/config.txt: result" $? >> $logFilePath
+#sed -i 's/enable_uart=0/enable_uart=1/' /boot/config.txt      #######   2023: OUT OF DATE  no uart stuff in config.txt  see: https://openenergymonitor.github.io/forum-archive/node/12311.html
+#        May be different from Pi Zero to Pi Zero 2 W
+#echo "PiFly Setup: sed -i 's/enable_uart=0/enable_uart=1/' /boot/config.txt: result" $? >> $logFilePath
+#sed -i 's/#enable_uart=1/enable_uart=1/' /boot/config.txt
+#echo "PiFly Setup: sed -i 's/#enable_uart=1/enable_uart=1/' /boot/config.txt: result" $? >> $logFilePath
 #
-#
+#  disable bluetooth since we took its serial port away.
+echo "dtoverlay=disable-bt"  >> /boot/config.txt
 #
 #
 #
@@ -570,9 +554,9 @@ else
 fi
 chmod +x TX-CPUTemp.sh
 echo "PiFly Setup: chmod +x TX-CPUTemp.sh: result" $? >> $logFilePath
-echo "PiFly Setup: Starting gcc -O3 -lm -std=gnu99 -o nbfm nbfm.c &> $logFilePath" >> $logFilePath
+echo "PiFly Setup: Starting gcc -O3 -std=gnu99 -o nbfm nbfm.c -lm &>> $logFilePath " >> $logFilePath
 gcc -O3 -std=gnu99 -o nbfm nbfm.c -lm &>> $logFilePath                 # changed from -std=c99 to -std=gnu99, and -o3 to -O3. 3/28/2022 moved -lm to end for Bullseye
-echo "PiFly Setup: gcc -O3 -lm -std=gnu99 -o nbfm nbfm.c &>> $logFilePath: result" $? >> $logFilePath
+echo "PiFly Setup: gcc -O3 -std=gnu99 -o nbfm nbfm.c -lm &>> $logFilePath : result" $? >> $logFilePath
 cd /home/pi/pifly
 chown -R pi:pi NBFM     # because when this script is run with sudo, everything belongs to root
 echo "PiFly Setup: chown -R pi:pi NBFM: result" $? >> $logFilePath
@@ -649,8 +633,8 @@ chown pi:pi pkt2wave     # because when this script is run with sudo, everything
 # set up audio output
 #  https://learn.adafruit.com/adding-basic-audio-ouput-to-raspberry-pi-zero/pi-zero-pwm-audio
 echo "PiFly setup: Starting raspi-gpio setup" >> $logFilePath
-apt-get install raspi-gpio
-echo "PiFly Setup: apt-get install raspi-gpio: result" $? >> $logFilePath
+apt install raspi-gpio
+echo "PiFly Setup: apt install raspi-gpio: result" $? >> $logFilePath
 #
 # now get gpio_alt.c
 cd /home/pi/pifly
@@ -689,8 +673,8 @@ fi
 #
 # Text to speech and text to wave support    see:https://learn.adafruit.com/speech-synthesis-on-the-raspberry-pi/installing-the-festival-speech-package
 echo "PiFly setup: Startingfestivalsetup"
-apt-get -y install festival
-echo "PiFly Setup: apt-get festival: result" $? >> $logFilePath
+apt -y install festival
+echo "PiFly Setup: apt festival: result" $? >> $logFilePath
 #
 # Slow down rate of speech a bit
 sed -i.bak -e "s/(Parameter.set 'Duration_Stretch 1.1)/(Parameter.set 'Duration_Stretch 1.6)/"  /usr/share/festival/voices/english/kal_diphone/festvox/kal_diphone.scm
@@ -700,9 +684,9 @@ echo "PiFly Setup: sed, Slow down of speech: result" $? >> $logFilePath
 #
 #
 # SoX resample support
-echo "PiFly setup: StartingSoXsetup"
-apt-get -y install SoX
-echo "PiFly Setup: apt-get SoX: result" $? >> $logFilePath
+#echo "PiFly setup: StartingSoXsetup"
+#apt -y install SoX
+#echo "PiFly Setup: apt SoX: result" $? >> $logFilePath
 #
 #
 #
@@ -713,10 +697,10 @@ echo "PiFly Setup: apt-get SoX: result" $? >> $logFilePath
 ########## 5) Graphics for Video downlink support
 #
 # Python matplotlib
-echo "PiFly setup: Starting python-matplotlib setup" >> $logFilePath
-apt-get -y install python-matplotlib
+#echo "PiFly setup: Starting python-matplotlib setup" >> $logFilePath
+#apt -y install python-matplotlib
 #
-echo "PiFly Setup: apt-get python-matplotlib: result" $? >> $logFilePath
+#echo "PiFly Setup: apt python-matplotlib: result" $? >> $logFilePath
 #
 #
 #
@@ -775,14 +759,14 @@ raspi-gpio get  >> $logFilePath
 #
 # First, tools to build all this...
 # for libpifly and RTIMULib
-apt-get -y install cmake
-echo "PiFly Setup: apt-get -y install cmake: result" $? >> $logFilePath
+apt -y install cmake
+echo "PiFly Setup: apt -y install cmake: result" $? >> $logFilePath
 #
 #
 # Second, Qt dependancies for demo programs
 #
 cd /home/pi/pifly
-apt-get -y install qt4-dev-tools qt4-bin-dbg qt4-qtconfig qt4-default
+apt -y install qt4-dev-tools qt4-bin-dbg qt4-qtconfig qt4-default
 #
 if [ -d RTIMULib2 ]; then
   cd RTIMULib2
@@ -847,41 +831,40 @@ sed -i '/=/ s/$/ dtoverlay=i2c-rtc,ds3231/' /boot/cmdline.txt
 #
 ########## 9) Developer tools
 #
-# Screen capture tool
-echo "PiFly setup: Starting scrot setup" >> $logFilePath
-apt-get -y install scrot
-echo "PiFly Setup: apt-getapt-get scrot: result" $? >> $logFilePath
-#
-#
 #
 # Python stuff
-apt-get -y install python-smbus python3-smbus build-essential python-dev python3-dev python-picamera
-echo "PiFly Setup: apt-get -y install python-smbus python3-smbus build-essential python-dev python3-dev: result" $? >> $logFilePath
+apt -y install build-essential python-dev python3-dev
+echo "PiFly Setup: apt -y install python-smbus python3-smbus build-essential python-dev python3-dev: result" $? >> $logFilePath
 #
 #
 #
 # Install I2C tools
 echo "PiFly setup: Starting i2c-tools setup" >> $logFilePath
-apt-get -y install i2c-tools
-echo "PiFly Setup: apt-get install i2c-tools: result" $? >> $logFilePath
+apt -y install i2c-tools
+echo "PiFly Setup: apt install i2c-tools: result" $? >> $logFilePath
 #
 #
 # To view serial data for GPS
 # to use:
 #    screen /dev/ttyAMA0 9600
-apt-get -y install screen
-echo "PiFly Setup: apt-get -y install screen: result" $? >> $logFilePath
+apt -y install screen
+echo "PiFly Setup: apt -y install screen: result" $? >> $logFilePath
 #
 #
 #
 #  GPS format conversion tool
-apt-get -y install gpsbabel
-echo "PiFly Setup: apt-get -y install gpsbabel: result" $? >> $logFilePath
+apt -y install gpsbabel
+echo "PiFly Setup: apt -y install gpsbabel: result" $? >> $logFilePath
 #
 #
 # setserial serial port configuration/reporting utility
-apt-get -y install setserial
-echo "PiFly Setup: apt-get -y install setserial: result" $? >> $logFilePath
+apt -y install setserial
+echo "PiFly Setup: apt -y install setserial: result" $? >> $logFilePath
+#
+#
+# cutecom terminal emulator
+apt -y install cutecom
+echo "PiFly Setup: apt -y install cutecom: result" $? >> $logFilePath
 #
 #
 # Adafruit PCA9685 Python library
@@ -918,7 +901,7 @@ fi
 #
 #
 # Math support
-#sudo apt-get install octave
+#sudo apt install octave
 #
 #
 #
@@ -929,21 +912,19 @@ echo ""
 tput setaf 2      # highlight summary text green to make it more attention getting.
 echo "PiFly Setup Script version" $PIFLYSETUPVERSION
 echo "Most software is installed under ~/pifly. These files were changed: /boot/cmdline.txt, /etc/rc.local, and /home/pi/.bashrc"
-echo "Installed software: pifm, nbfm, rpitx, pkt2wave, i2c-tools, gpio, gpio-halt, gpio_alt, gpsbabel, scrot, screen, cmake, RTIMULib, setserial, SoX, and festival"
-echo "Installed Python libraries: python-picamera, matplotlib, python-smbus, python3-smbus, build-essential, python-dev, python3-dev, adafruit-pca9685, and RTIMULib2"
+echo "Installed software: pifm, nbfm, rpitx, pkt2wave, gpio-halt, gpio_alt, gpsbabel, screen, cmake, RTIMULib, setserial, cutecom, and festival"
+echo "Installed Python libraries: build-essential, python-dev, python3-dev, adafruit-pca9685, and RTIMULib2"
 echo "Hardware shutdown can be done by grounding GPIO" $HALTGPIOBIT "using switch SW1"
-echo "USB flash drives will be read-write after re-boot. PWM audio is available on GPIO13 and amplified on connector P4."
+echo "PWM audio is available on GPIO13 and amplified on connector P4."
 echo "GPIOs for high current outputs set to output zero. Added smbus (i2c) support to Python. ll alias setup in .bashrc."
-echo " GPS data can be viewed using:  sudo screen /dev/ttyAMA0 9600"
+echo " GPS data can be viewed using:  sudo screen /dev/ttyAMA0 9600 if not using libpifly (libpifly does 50 locations/sec in binary)"
 df -PBMB | grep -E '^/dev/root' | awk '{ print "Free SD card space " $4 " of " $2 }'
 df -PBMB | grep -E '^/dev/root' | awk '{ print "PiFly Setup: Free SD card space after install " $4 " of " $2 }' >> $logFilePath
 echo "PiFly Setup: Install complete " $(date +"%A,  %B %e, %Y, %X %Z") >> $logFilePath
 echo ""
 #
-# enable SW1 to do shutdown
-/usr/local/bin/gpio-halt $HALTGPIOBIT &
 tput setaf 5        # highlight text magenta
-echo "You must re-boot for the changes to take effect, you can use button SW1 for this now. Remember to set country, time zone and enable i2c and spi in preferences."
+echo "You must re-boot for the changes to take effect. Remember to set country & time zone."
 tput setaf 7        # back to normal
 echo "Install complete " $(date +"%A,  %B %e, %Y, %X %Z") >> $runlogFilePath
 
